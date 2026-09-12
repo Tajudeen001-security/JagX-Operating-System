@@ -1,51 +1,34 @@
-# JagX Kernel Starter Documentation
+# JagX Kernel Progress
 
-## What was added in this update
+## v0.0.1
+- GDT, IDT, PIC, Timer, basic keyboard, VGA console
 
-### GDT (Global Descriptor Table)
-- Null, Code, and Data segments
-- Flat 4 GB model (typical for hobby kernels)
-- `gdt_flush` reloads all segment registers
+## v0.0.2 (current)
+Implemented the next 6 items:
 
-### IDT (Interrupt Descriptor Table)
-- Full 256 entries
-- Exception handlers (ISR 0-31) with human-readable messages
-- IRQ handlers (32-47 after PIC remap)
-
-### PIC (8259 Programmable Interrupt Controller)
-- Remapped so IRQs start at vector 32 (avoids collision with CPU exceptions)
-- EOI (End Of Interrupt) support
-- Individual IRQ mask/unmask helpers
-
-### Timer (PIT)
-- Configured to 100 Hz
-- Increments a tick counter
-- Prints a `.` every second so you can see it is alive
-
-### Keyboard
-- Basic PS/2 scancode → ASCII translation (US layout)
-- Echoes typed characters to the console
-
-### Console
-- 80×25 VGA text mode
-- Scrolling, newline, backspace, tab
-- Simple write / hex / decimal helpers
-
-## How interrupts flow
-
-1. Hardware raises IRQ → PIC → CPU
-2. CPU looks up handler in IDT
-3. Assembly stub (`irqN` / `isrN`) saves registers and calls C
-4. C handler (`irq_handler` / `isr_handler`) does the work
-5. EOI is sent to the PIC
-6. `iret` restores state and returns
+1. **Better keyboard** – Left/Right Shift + Caps Lock
+2. **Physical Memory Manager** – Bitmap page frame allocator (up to 128 MB)
+3. **Kernel Heap** – Bump-style `kmalloc`
+4. **Paging** – Basic 32-bit paging with identity mapping of the first 4 MB
+5. **RamFS** – Simple in-memory file store with demo files
+6. **Syscall interface** – Numbered dispatcher ready for userspace later
 
 ## Testing checklist
 
-- [ ] Kernel boots under QEMU and shows the banner
-- [ ] Dots appear roughly once per second
-- [ ] Typing on the keyboard produces characters
-- [ ] Backspace works
-- [ ] No immediate triple-fault or exception
+- [x] Boots and shows all init messages
+- [x] Timer dots appear
+- [x] Keyboard works with Shift / Caps
+- [x] PMM reports free pages
+- [x] Paging enabled without crashing
+- [x] RamFS lists welcome.txt and version
+- [x] Demo syscall prints a message
 
-Enjoy building JagX!
+## Known limitations (expected at this stage)
+
+- Heap cannot free individual blocks yet
+- Only first 4 MB is mapped
+- No Multiboot memory map used (hard-coded 128 MB assumption)
+- No real userspace yet (syscalls are callable from kernel only)
+- Still 32-bit protected mode
+
+These will be addressed in future iterations.

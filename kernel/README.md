@@ -1,55 +1,43 @@
-# JagX Kernel (Advanced Starter)
+# JagX Kernel v0.0.2
 
-This is a significantly improved hobby-OS style kernel skeleton.
+## Features now included
 
-## Features included
+1. **Improved keyboard** – Shift and Caps Lock support
+2. **Physical Memory Manager (PMM)** – Bitmap-based page allocator
+3. **Kernel Heap** – Simple bump allocator (`kmalloc` / `kfree`)
+4. **Basic Paging** – Identity-mapped first 4 MB, paging enabled
+5. **RamFS** – In-memory filesystem with create / read / list
+6. **Syscall stub** – Dispatcher for future userspace (SYS_WRITE, SYS_UPTIME, etc.)
 
-- Multiboot-compliant entry point
-- Global Descriptor Table (GDT)
-- Interrupt Descriptor Table (IDT)
-- Exception handlers (0-31) with messages
-- PIC remapping (IRQs moved to 32-47)
-- Programmable Interval Timer (PIT) at 100 Hz
-- Basic PS/2 keyboard driver (US QWERTY)
-- VGA text-mode console with scrolling, backspace, tabs
-- Interrupt-driven main loop (`hlt`)
+Plus everything from v0.0.1 (GDT, IDT, PIC, timer, console).
 
-## Building
+## Build & Run
 
-You need a 32-bit capable toolchain.
-
-### Option A – Cross compiler (recommended)
 ```bash
-# Install or build i686-elf-gcc / i686-elf-as / i686-elf-ld
+cd kernel
 make
-```
-
-### Option B – Host compiler with -m32 (Linux)
-```bash
-sudo apt install gcc-multilib   # or equivalent
-make
-```
-
-## Running with QEMU
-```bash
 make run
-# or manually:
-qemu-system-i386 -kernel jagx.kernel
 ```
 
-You should see the welcome messages, then dots appearing every second (timer),
-and any keys you type will be echoed on the screen.
+You should see initialization messages for all new subsystems, a list of RamFS files, and a demo syscall message.
 
-## Next steps (suggested)
+## Directory layout (new)
 
-1. Better keyboard (shift, caps, special keys)
-2. Heap / physical memory manager
-3. Paging
-4. Move to long mode (true x86_64)
-5. Simple filesystem / ramdisk
-6. Userspace processes & syscalls
+```
+kernel/
+├── arch/x86_64/     # Architecture specific (boot, GDT, IDT, drivers)
+├── mm/              # Memory management (PMM, heap, paging)
+├── fs/              # Filesystems (RamFS for now)
+├── syscall/         # System call interface
+└── ...
+```
 
-## Notes
+## Next major goals
 
-This kernel currently runs in **32-bit protected mode** for simplicity and educational value.
-A future milestone will switch to long mode (64-bit) while keeping the same overall design.
+- Proper Multiboot memory map parsing
+- Full free-list / slab allocator
+- Expand paging (more than 4 MB, user/kernel separation)
+- Long mode (true 64-bit)
+- Real userspace processes + `int 0x80` / syscall instruction
+- ELF loader
+- Better VFS layer
