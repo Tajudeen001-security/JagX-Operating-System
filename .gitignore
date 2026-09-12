@@ -1,0 +1,16 @@
+# Build artifacts
+*.o
+*.kernel
+*.bin
+*.iso
+*.img
+
+# Editor / IDE
+.vscode/
+.idea/
+*.swp
+*~
+
+# OS generated
+.DS_Store
+Thumbs.db
