@@ -1,29 +1,53 @@
-/* JagX Kernel – Minimal entry point
- *
- * This is intentionally extremely simple.
- * Real memory management, interrupts, drivers, etc. come later.
+/* ============================================================
+ * JagX Kernel - Main entry point
+ * ============================================================
+ * Features in this starter:
+ *   - GDT setup
+ *   - IDT + exception handlers
+ *   - PIC remapping
+ *   - PIT timer (IRQ0)
+ *   - PS/2 keyboard (IRQ1)
+ *   - VGA text console with scrolling
+ * ============================================================
  */
 
+#include "gdt.h"
+#include "idt.h"
+#include "pic.h"
+#include "timer.h"
+#include "keyboard.h"
+#include "console.h"
+
 void kernel_main(void) {
-    /* VGA text mode buffer */
-    volatile char* video = (volatile char*)0xB8000;
+    /* Initialize core subsystems */
+    console_init();
+    console_write("JagX Operating System\n");
+    console_write("=====================\n\n");
 
-    const char* msg = "Welcome to JagX Operating System!";
-    int i = 0;
+    console_write("[*] Setting up GDT...\n");
+    gdt_init();
 
-    /* Clear screen (black background) */
-    for (int j = 0; j < 80 * 25 * 2; j += 2) {
-        video[j] = ' ';
-        video[j + 1] = 0x07;   /* light grey on black */
+    console_write("[*] Setting up IDT...\n");
+    idt_init();
+
+    console_write("[*] Remapping PIC...\n");
+    pic_remap();
+
+    console_write("[*] Initializing timer (100 Hz)...\n");
+    timer_init(100);
+
+    console_write("[*] Initializing keyboard...\n");
+    keyboard_init();
+
+    /* Enable interrupts */
+    __asm__ volatile ("sti");
+
+    console_write("\nSystem ready. Type on the keyboard.\n");
+    console_write("Timer ticks will appear as dots.\n\n");
+    console_write("> ");
+
+    /* Main kernel loop - interrupts do the work */
+    for (;;) {
+        __asm__ volatile ("hlt");  /* Halt until next interrupt */
     }
-
-    /* Print message */
-    while (msg[i]) {
-        video[i * 2] = msg[i];
-        video[i * 2 + 1] = 0x0A;  /* light green */
-        i++;
-    }
-
-    /* Infinite loop */
-    for (;;);
 }
