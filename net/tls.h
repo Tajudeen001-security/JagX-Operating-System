@@ -3,13 +3,10 @@
 
 #include <stdint.h>
 
-/* TLS foundation for HTTPS — records + ClientHello scaffold.
- * Full handshake (cert verify, key exchange) is the next crypto milestone.
- */
-
 enum tls_state {
     TLS_CLOSED = 0,
     TLS_CLIENT_HELLO_SENT,
+    TLS_SERVER_HELLO_RCVD,
     TLS_HANDSHAKING,
     TLS_APP_DATA
 };
@@ -18,10 +15,15 @@ struct tls_conn {
     enum tls_state state;
     uint16_t remote_port;
     uint32_t remote_ip;
+    uint8_t  server_random[32];
+    uint16_t cipher_suite;
+    int      got_server_hello;
+    int      got_certificate;
 };
 
 void tls_init(void);
 int  tls_client_hello(struct tls_conn* c, uint32_t ip, uint16_t port, const char* sni_host);
+int  tls_process_records(struct tls_conn* c, const uint8_t* data, uint32_t len);
 int  tls_send_appdata(struct tls_conn* c, const uint8_t* data, uint32_t len);
 
 #endif

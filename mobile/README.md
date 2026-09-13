@@ -1,28 +1,20 @@
 # JagX Mobile
 
-This directory contains everything specific to making **JagX on phones and tablets** excellent.
+## HAL interfaces (v0.0.15)
 
-## Goal
+| HAL | Purpose | Control Center |
+|-----|---------|----------------|
+| `hal/camera` | Open / capture / preview | — |
+| `hal/lights` | Flashlight / notification LED | Torch toggle |
+| `hal/radio` | SIM, signal, mobile data, SMS | Data / Airplane |
+| `hal/wifi` | Wi‑Fi on/off / connect | Wi‑Fi toggle |
 
-Build one of the best mobile operating systems in the world — measured by:
+Device ports **register** ops with `jagx_*_register()`. Until a real driver is bound, stubs log and allow UI development.
 
-- Input latency and smoothness
-- Battery efficiency
-- Privacy and user control
-- Visual and interaction quality
-- Long-term maintainability
+## Control Center
 
-## Contents
+`control_center_*` toggles call into HALs — same model a future Settings UI will use.
 
-- `ARCHITECTURE.md` — High-level mobile architecture
-- `UX_PRINCIPLES.md` — Design and interaction principles
-- `POWER.md` — Power management philosophy
-- `TOUCH.md` — Touch & gesture pipeline goals
-- `SECURITY.md` — Mobile security model ideas
+## Replacing Android on Tecno/Itel
 
-## Relationship to the Kernel
-
-The core kernel lives in `/kernel` and is shared.  
-Mobile-specific drivers, HALs, and policy will live here or under `kernel/arch/aarch64` and platform layers.
-
-We deliberately keep the mobile design documents early so that every kernel and userspace decision can be evaluated against mobile excellence.
+See [`docs/REPLACE_ANDROID.md`](../docs/REPLACE_ANDROID.md).

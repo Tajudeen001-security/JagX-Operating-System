@@ -1,10 +1,11 @@
-# JagX v0.0.14
+# JagX v0.0.15
 
 ## TLS
-- ClientHello send
-- ServerHello detection on RX path
-- App-data still blocked until key schedule
+- Record parser for Handshake / CCS / Alert / AppData
+- ServerHello field extract (random, cipher suite)
+- Certificate + ServerHelloDone recognition
+- Still missing: key exchange, cert verify, traffic secrets
 
-## Docs
-- `docs/REPLACE_ANDROID.md` — full guide for Tecno/Itel/etc. migration expectations
-- README linked to camera, SMS, SIM, control center, flashlight targets
+## Mobile HALs
+- camera, lights (torch), radio (data/SMS/airplane), wifi
+- Control Center toggles wired to HALs
