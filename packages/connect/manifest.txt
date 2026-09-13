@@ -1,0 +1,11 @@
+name=JagX Connect
+package=com.jagx.connect
+version=1.0.0
+vendor=JagX & JRILICENSE
+arch=any
+entry=connect.main
+min_os=0.1.0
+perm=social,network,storage,camera
+category=social
+region=NG,BJ,BF
+description=Native JagX Connect for JagX OS. Feed, events, calls, marketplace.
