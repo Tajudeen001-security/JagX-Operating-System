@@ -12,7 +12,7 @@ JagX is a **from-scratch OS**. Android phones ship with:
 
 JagX does **not** reuse that Android stack. So “override Android → JagX” is a **full device port**, not a one-click installer.
 
-This document explains the **real path** for individuals and companies who want a Tecno/Itel/other device to run JagX with working hardware features.
+**For testing without bricking:** use the JagX Test Shell (Add to Home screen). See [`TEST_ANDROID.md`](TEST_ANDROID.md).
 
 ---
 
@@ -31,50 +31,36 @@ This document explains the **real path** for individuals and companies who want 
 
 All of that must be **implemented for each SoC/board**, not inherited automatically from Android.
 
+Native apps already in tree: Phone, Messages, JagCircle, JagBrowser, JagStore (`.jagx` only).
+
 ---
 
 ## Realistic stages
 
-### Stage 0 — Lab only (current project status)
+### Stage 0 — Lab only (current)
 - QEMU aarch64 / x86
+- JagX Test Shell (browser / PWA) for UX
 - No consumer phone installer
 - No Tecno/Itel flash package
 
 ### Stage 1 — Bring-up on one unlocked device
-Pick **one** model with:
-- Unlockable bootloader
-- Public or obtainable schematics / kernel sources where possible
-- Willingness to brick and recover
+Pick **one** model with unlockable bootloader.
 
-Work items:
 1. Unlock bootloader (OEM policy; often voids warranty)
-2. Find a working recovery / fastboot
-3. Port JagX aarch64 kernel to that board (UART first)
-4. Display (framebuffer / DRM-style driver)
-5. Touch input
-6. Basic charging / battery status
+2. Working recovery / fastboot
+3. Port JagX aarch64 kernel (UART first)
+4. Display (framebuffer)
+5. Touch
+6. Charging / battery
 
-### Stage 2 — “Daily usability” hardware
-7. Wi‑Fi / Bluetooth (often needs firmware blobs + legal redistribution rights)
-8. Audio
-9. Sensors (IMU, ALS, proximity)
-10. Flashlight LED
-11. Camera (complex: sensor + ISP + userspace HAL)
+### Stage 2 — Daily usability hardware
+Wi‑Fi / Bluetooth, audio, sensors, flashlight, camera.
 
-### Stage 3 — Telephony (hardest for most teams)
-12. Baseband / modem interface (proprietary on almost all phones)
-13. SIM detection, signal, mobile data on/off
-14. SMS send/receive
-15. Voice calls
-
-**Without modem vendor documentation or a reverse-engineered RIL, SMS and cellular data will not work** — this is true for almost every non-Android OS on commercial phones.
+### Stage 3 — Telephony
+Baseband / modem, SIM, SMS, voice calls. **Hardest.** Without vendor docs, SMS and cellular data will not work.
 
 ### Stage 4 — Product polish
-- Control center UI (JagX Design System)
-- Settings app
-- Permissions / capability security
-- OTA updates + verified boot
-- Regulatory certification (RF, safety) if sold commercially
+Control Center, Settings, permissions, OTA, verified boot, RF certification.
 
 ---
 
@@ -87,57 +73,29 @@ Work items:
 | RIL / modem daemon | Gone | No SIM, SMS, mobile data |
 | Camera HAL + ISP libs | Gone | Black screen camera |
 
-JagX must **reimplement or legally integrate** each of these for that exact chipset (MediaTek / Unisoc / etc. common on Tecno/Itel).
-
 ---
 
-## Control center features (design target)
+## For a company (OEM, carrier, ministry, startup)
 
-When the mobile shell exists, Control Center should include:
-
-- Mobile data toggle (needs modem stack)
-- Wi‑Fi / Bluetooth / Airplane mode
-- Flashlight (LED class driver)
-- Brightness / rotation
-- Quiet / focus modes
-- Quick Settings tiles aligned with `mobile/UX_PRINCIPLES.md` and `docs/MOBILE_SECURITY.md`
-
-These are **UI + HAL + driver** work, documented as goals, not available as a flashable ROM today.
-
----
-
-## For a company (Tecno OEM, carrier, or startup)
-
-1. **Choose one reference device** and fund a BSP team (kernel + drivers + QA).
-2. Negotiate **firmware redistribution** rights for Wi‑Fi/modem/camera blobs if required.
-3. Implement JagX HALs:
-   - `camera`, `lights` (torch), `radio`/`modem`, `wifi`, `sensors`
-4. Build Settings + Messaging + Dialer + Control Center on the JagX compositor.
-5. Ship with **verified boot** and a recovery that can restore a working image.
-6. Run field tests for SIM, SMS, data, camera, thermal, battery.
-
-Estimated effort for a single phone model with working telephony + camera: **large multi-person, multi-month/year project**, not a weekend install.
+1. Choose **one** reference device and fund a BSP team
+2. Negotiate firmware redistribution for Wi‑Fi/modem/camera blobs
+3. Implement JagX HALs: camera, lights, radio, wifi, sensors
+4. Build Settings + Messaging + Dialer + Control Center
+5. Ship verified boot + recovery
+6. Field-test SIM, SMS, data, camera, thermal, battery
 
 ---
 
 ## What you can do today
 
 ```bash
-# Experience JagX safely in QEMU (PC or aarch64)
 cd kernel && make && make iso
-qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio \
-  -netdev user,id=net0 -device virtio-net-pci,netdev=net0
-
-# Mobile architecture stub
-cd kernel/arch/aarch64
-# build & run under qemu-system-aarch64 (see README)
+qemu-system-i386 -cdrom ../boot/jagx.iso -m 256M -serial stdio
 ```
 
-Read also:
-- `mobile/README.md` — mobile vision
-- `docs/SETUP_MOBILE.md` — aarch64 QEMU steps
-- `docs/MOBILE_SECURITY.md` — permissions model
-- Root `README.md` — full PC/Mobile setup
+On a phone: Chrome → JagX Test Shell → Add to Home screen. This **overrides your testing home icon**, not the Android system partition.
+
+Read: `docs/TEST_ANDROID.md`, `mobile/README.md`, `docs/SETUP_MOBILE.md`.
 
 ---
 
@@ -146,8 +104,7 @@ Read also:
 | Question | Answer |
 |----------|--------|
 | Can I turn my Tecno/Itel into JagX this week like a custom ROM? | **No** |
-| Can JagX become that OS with proper engineering? | **Yes, as a long-term port** |
-| Will camera, SMS, SIM data, flashlight work automatically? | **Only after drivers + HALs for that device** |
-| Is there an official “override Android” installer? | **Not yet — documented path only** |
-
-Honesty protects users from bricking phones and protects the project from false claims.
+| Can I test JagX UX on that phone this week? | **Yes — Test Shell** |
+| Can JagX become the phone OS with proper engineering? | **Yes, as a long-term port** |
+| Will camera, SMS, SIM data, flashlight work automatically? | **Only after drivers + HALs** |
+| Official “override Android” installer? | **Not yet — documented path only** |

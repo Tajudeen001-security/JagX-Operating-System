@@ -1,4 +1,4 @@
-/* JagX v0.0.24 — native Noder IDE for coding on JagX */
+/* JagX v0.1.0 — Independence: native phone, SMS, social, store, launcher */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -21,7 +21,14 @@
 #include "../../../mobile/notifications.h"
 #include "../../../mobile/statusbar.h"
 #include "../../../mobile/lockscreen.h"
+#include "../../../mobile/launcher.h"
 #include "../../../apps/noder.h"
+#include "../../../apps/phone.h"
+#include "../../../apps/messages.h"
+#include "../../../apps/social.h"
+#include "../../../apps/browser_app.h"
+#include "../../../apps/store.h"
+#include "../../../apps/contacts.h"
 #include "../../../pkg/jagxpkg.h"
 #include "../../../i18n/lang.h"
 #include "../../../drivers/driver.h"
@@ -40,12 +47,12 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.24\n===============\n\n");
+    console_write("JagX OS v0.1.0 Independence\n===========================\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
     gdt_init(); idt_init(); pic_remap();
-    if (pmm_get_total_pages() == 0) pmm_init(128 * 1024);
+    if (pmm_get_total_pages() == 0) pmm_init(256 * 1024);
     heap_init(); paging_init(); fb_init();
     timer_init(100); keyboard_init(); mouse_init();
 
@@ -61,6 +68,13 @@ void kernel_main(uint32_t magic, void* mb_info) {
     control_center_init();
     statusbar_init();
     lockscreen_init();
+    launcher_init();
+    contacts_init();
+    phone_init();
+    messages_init();
+    social_init();
+    browser_app_init();
+    store_init();
 
     /* Unlock so user can type into Noder immediately in lab */
     lockscreen_hide();
@@ -72,8 +86,9 @@ void kernel_main(uint32_t magic, void* mb_info) {
 
     noder_save_current();
     console_write("[NODER] Type to edit. Ctrl+S save. Ctrl+1-4 tabs.\n");
+    console_write("[APPS] Phone, Messages, JagCircle, JagBrowser, JagStore (.jagx)\n");
 
-    notifications_push("Noder", "Code on JagX — keyboard ready");
+    notifications_push("JagX", "Independence — native apps, no APK");
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -82,12 +97,14 @@ void kernel_main(uint32_t magic, void* mb_info) {
 
     compositor_init(&g_compositor);
     compositor_create_window(&g_compositor, 20, 30, 700, 400, "Noder — JagX IDE");
+    compositor_create_window(&g_compositor, 40, 80, 280, 360, "Phone");
     compositor_render(&g_compositor);
     noder_draw(28, 62, 680, 360);
+    phone_draw(48, 112, 260, 320);
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("Native Noder IDE focused — start coding on JagX\n");
+    console_write("JagX v0.1.0 ready — .jagx only, never APK\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }

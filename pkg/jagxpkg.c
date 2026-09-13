@@ -8,7 +8,7 @@ static int n_inst = 0;
 void pkg_init(void) {
     n_inst = 0;
     for (int i = 0; i < JAGX_PKG_MAX; i++) installed[i].installed = 0;
-    console_write("[PKG] .jagx package manager online\n");
+    console_write("[PKG] .jagx package manager online (APK/IPA/EXE refused)\n");
 }
 
 static int key_eq(const char* line, const char* key) {
@@ -31,6 +31,7 @@ int pkg_parse_manifest(const char* text, struct jagx_pkg_info* out) {
     if (!text || !out) return -1;
     out->name[0] = out->package[0] = out->version[0] = 0;
     out->vendor[0] = out->entry[0] = out->arch[0] = 0;
+    out->perm[0] = out->min_os[0] = 0;
     out->installed = 0;
     const char* p = text;
     while (*p) {
@@ -40,6 +41,8 @@ int pkg_parse_manifest(const char* text, struct jagx_pkg_info* out) {
         else if (key_eq(p, "vendor")) copy_val(p, out->vendor, JAGX_PKG_NAME);
         else if (key_eq(p, "entry")) copy_val(p, out->entry, JAGX_PKG_NAME);
         else if (key_eq(p, "arch")) copy_val(p, out->arch, 16);
+        else if (key_eq(p, "perm")) copy_val(p, out->perm, JAGX_PKG_PERM);
+        else if (key_eq(p, "min_os")) copy_val(p, out->min_os, 16);
         while (*p && *p != '\n') p++;
         if (*p == '\n') p++;
     }
@@ -56,7 +59,7 @@ uint32_t pkg_build(const char* manifest, const uint8_t* payload, uint32_t plen,
                    uint8_t* out, uint32_t out_max) {
     uint32_t mlen = 0;
     while (manifest[mlen]) mlen++;
-    uint32_t total = 16 + mlen + plen; /* sizeof header fields we write */
+    uint32_t total = 24 + mlen + plen;
     if (total > out_max) return 0;
 
     struct jagx_pkg_header h;
@@ -84,12 +87,21 @@ uint32_t pkg_build(const char* manifest, const uint8_t* payload, uint32_t plen,
     return o;
 }
 
+static int ends_with(const char* s, const char* ext) {
+    int n = 0, e = 0;
+    while (s[n]) n++;
+    while (ext[e]) e++;
+    if (n < e) return 0;
+    for (int i = 0; i < e; i++) if (s[n - e + i] != ext[i]) return 0;
+    return 1;
+}
+
 int pkg_install_buffer(const uint8_t* data, uint32_t len) {
     if (!data || len < 24) return -1;
     uint32_t magic = (uint32_t)data[0] | ((uint32_t)data[1] << 8) |
                      ((uint32_t)data[2] << 16) | ((uint32_t)data[3] << 24);
     if (magic != JAGX_PKG_MAGIC) {
-        console_write("[PKG] Not a .jagx package (bad magic)\n");
+        console_write("[PKG] Not a .jagx package (bad magic) — APK/IPA/EXE refused\n");
         return -1;
     }
     uint32_t mlen = (uint32_t)data[8] | ((uint32_t)data[9] << 8) |
@@ -106,15 +118,14 @@ int pkg_install_buffer(const uint8_t* data, uint32_t len) {
         return -1;
     }
 
-    char mtxt[512];
-    uint32_t copy = mlen < 511 ? mlen : 511;
+    char mtxt[768];
+    uint32_t copy = mlen < 767 ? mlen : 767;
     for (uint32_t i = 0; i < copy; i++) mtxt[i] = (char)man[i];
     mtxt[copy] = 0;
 
     struct jagx_pkg_info info;
     if (pkg_parse_manifest(mtxt, &info) != 0) return -1;
 
-    /* store payload under /apps/<package> */
     char path[96];
     int pi = 0;
     const char* pref = "/apps/";
@@ -144,6 +155,12 @@ int pkg_install_buffer(const uint8_t* data, uint32_t len) {
 }
 
 int pkg_install_path(const char* path) {
+    if (!path) return -1;
+    if (ends_with(path, ".apk") || ends_with(path, ".ipa") ||
+        ends_with(path, ".exe") || ends_with(path, ".dex")) {
+        console_write("[PKG] Refused foreign package — use .jagx\n");
+        return -1;
+    }
     uint8_t buf[4096];
     uint32_t n = 0;
     if (ramfs_read(path, buf, sizeof(buf), &n) != 0) return -1;

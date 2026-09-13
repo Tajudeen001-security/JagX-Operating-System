@@ -1,0 +1,8 @@
+name=Hello JagX
+package=ng.example.hello
+version=1.0.0
+vendor=JagX SDK
+arch=any
+entry=hello.main
+min_os=0.1.0
+perm=network

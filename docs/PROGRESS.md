@@ -1,6 +1,11 @@
-# JagX v0.0.24
+# JagX v0.1.0 — Independence
 
-- Native Noder IDE on JagX (not Windows-only)
-- Multi-tab buffers, keyboard → editor, Ctrl+S, Ctrl+1-4
-- Explorer + tab bar + language hints
-- Default workspace main.c + readme.md
+- Native Phone (dialer + call state) and Messages (SMS) — not Android APKs
+- JagCircle social feed (compose / like)
+- JagBrowser app shell + JagStore (.jagx only, APK refused)
+- Mobile launcher home
+- Radio HAL: call_dial / answer / hangup
+- SDK (`sdk/jagx.h`) + `tools/pack_jagx.py`
+- Docs: install, Android test, Windows test, app development, government
+- Package manifest: perm= and min_os=
+- Noder IDE still first-class on-device

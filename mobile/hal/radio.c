@@ -4,6 +4,7 @@
 static const struct jagx_radio_ops* radio_ops = 0;
 static int data_enabled = 0;
 static int airplane = 0;
+static int call_active = 0;
 
 void jagx_radio_register(const struct jagx_radio_ops* ops) {
     radio_ops = ops;
@@ -34,4 +35,43 @@ int jagx_sms_send(const char* number, const char* text) {
         return -1;
     }
     return radio_ops->sms_send(number, text);
+}
+
+int jagx_call_dial(const char* number) {
+    if (airplane) {
+        console_write("[HAL] Call blocked — airplane mode\n");
+        return -1;
+    }
+    if (!radio_ops || !radio_ops->call_dial) {
+        console_write("[HAL] Call dial (stub, no baseband)\n");
+        call_active = 1;
+        (void)number;
+        return -1; /* stub: UI may still show a lab session */
+    }
+    return radio_ops->call_dial(number);
+}
+
+int jagx_call_answer(void) {
+    if (!radio_ops || !radio_ops->call_answer) {
+        call_active = 1;
+        return 0;
+    }
+    return radio_ops->call_answer();
+}
+
+int jagx_call_hangup(void) {
+    call_active = 0;
+    if (!radio_ops || !radio_ops->call_hangup) return 0;
+    return radio_ops->call_hangup();
+}
+
+int jagx_radio_signal(int* dbm) {
+    if (dbm) *dbm = radio_ops && radio_ops->get_signal ? 0 : -1;
+    if (!radio_ops || !radio_ops->get_signal) return -1;
+    return radio_ops->get_signal(dbm);
+}
+
+int jagx_sim_ready(void) {
+    if (!radio_ops || !radio_ops->sim_ready) return 0;
+    return radio_ops->sim_ready();
 }

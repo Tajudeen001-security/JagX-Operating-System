@@ -1,16 +1,17 @@
 # Building a `.jagx` package (host side)
 
-## Format
+See `docs/PACKAGE_FORMAT.md`, `docs/APP_DEVELOPMENT.md`, and `pkg/jagxpkg.c`.
 
-See `docs/PACKAGE_FORMAT.md` and `pkg/jagxpkg.c`.
+```bash
+python3 tools/pack_jagx.py \
+  --manifest sdk/examples/hello/manifest.txt \
+  --payload sdk/examples/hello/hello.c \
+  --out hello.jagx
+```
 
-## Steps
+The tool **refuses** `.apk` `.ipa` `.exe` `.dex` payloads.
 
-1. Write `manifest.txt` with name, package, version, vendor, arch, entry
-2. Build native payload (object code or resource blob)
-3. Call `pkg_build(manifest, payload, plen, out, out_max)` or host script that mirrors the header
-4. Write bytes to `myapp.jagx`
-5. On JagX: `pkg_install_path("/packages/myapp.jagx")`
+On JagX: `pkg_install_path("/packages/hello.jagx")` or JagStore.
 
 ## Noder
 
@@ -24,4 +25,4 @@ Installed at boot via `noder_package_install()`.
 
 ## APK
 
-Do **not** ship Noder as `.apk` for JagX. Rebuild as `.jagx`.
+Do **not** ship apps as `.apk` for JagX. Rebuild as `.jagx`.

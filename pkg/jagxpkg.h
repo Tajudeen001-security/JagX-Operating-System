@@ -6,7 +6,8 @@
 #define JAGX_PKG_MAGIC 0x5847414Au /* 'JAGX' little-endian bytes J A G X */
 #define JAGX_PKG_VER   1
 #define JAGX_PKG_NAME  64
-#define JAGX_PKG_MAX   16
+#define JAGX_PKG_MAX   32
+#define JAGX_PKG_PERM  96
 
 struct jagx_pkg_header {
     uint32_t magic;
@@ -24,6 +25,8 @@ struct jagx_pkg_info {
     char vendor[JAGX_PKG_NAME];
     char entry[JAGX_PKG_NAME];
     char arch[16];
+    char perm[JAGX_PKG_PERM];
+    char min_os[16];
     int installed;
 };
 

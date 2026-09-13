@@ -9,43 +9,61 @@
 | Windows | `.exe` / `.msi` | PE binaries / installers |
 | Linux | `.deb` / `.rpm` / AppImage | native ELF + metadata |
 | macOS | `.app` / `.dmg` | bundles |
+| **JagX** | **`.jagx`** | Magic `JAGX` + manifest + native payload |
 
-**JagX does not run APK or IPA.** Those need Android/iOS runtimes. JagX is a separate OS.
+**JagX does not run APK or IPA.** The package manager checks magic bytes and refuses `.apk` `.ipa` `.exe` `.dex`.
 
 ## JagX package: `.jagx`
 
 | Item | Value |
 |------|--------|
 | Extension | **`.jagx`** |
-| Magic | `JAGX` (4 bytes) then version `u16` |
-| Layout | Custom archive: header + manifest + payload blobs |
-| CPU | `x86` / `x86_64` / `aarch64` tags in manifest |
-| Entry | Native JagX binary or bytecode id in manifest |
+| Magic | `JAGX` (4 bytes LE `0x5847414A`) then version `u16` |
+| Layout | header (24 bytes) + manifest + payload |
+| CPU | `x86` / `x86_64` / `aarch64` / `any` in manifest |
+| Entry | Native JagX binary or bytecode id |
 
-### Manifest (text, inside package)
+Header (`pkg/jagxpkg.h`):
+
+```
+u32 magic
+u16 version
+u16 flags
+u32 manifest_len
+u32 payload_len
+u32 checksum   (sum of payload bytes)
+```
+
+### Manifest
 
 ```
 name=Noder
 package=com.jagx.noder
 version=1.0.0
 vendor=JagX & JRILICENSE
-arch=x86
+arch=any
 entry=noder.main
-min_os=0.0.22
+min_os=0.1.0
+perm=storage
 ```
+
+Permissions: `telephony`, `contacts`, `network`, `camera`, `storage`, `social`.
 
 ### Install path
 
 `/apps/<package>/` on the system volume (RamFS today).
 
-## Converting an Android APK (e.g. Noder APK)
+### Host packager
+
+```bash
+python3 tools/pack_jagx.py --manifest manifest.txt --payload app.bin --out app.jagx
+```
+
+## Converting an Android APK
 
 You **cannot** rename `.apk` → `.jagx` and run it.
 
-Correct path:
-1. Keep product design (VS Code–like editor = Noder)
-2. Implement as JagX-native code (this repo: `apps/noder/`)
-3. Package with `tools/pack_jagx` → `noder.jagx`
-4. Install with package manager API `pkg_install("noder.jagx")`
-
-If you only have an APK binary and no source, you must re-implement the UI/logic for JagX (same product name, native package).
+1. Keep the product design
+2. Implement as JagX-native (`sdk/jagx.h`)
+3. Package with `tools/pack_jagx.py`
+4. Install with JagStore or `pkg_install_path("noder.jagx")`
