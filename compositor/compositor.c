@@ -30,8 +30,8 @@ int compositor_create_window(struct compositor* c, int x, int y,
             c->windows[i].y = y;
             c->windows[i].width = w;
             c->windows[i].height = h;
-            /* Alternate teal / purple for demo */
-            c->windows[i].color = (i % 2 == 0) ? 0xFF00D4C8 : 0xFF7B5EA7;
+            c->windows[i].color = (i % 2 == 0) ? 0xFF1E2A3A : 0xFF2A1E3A;
+            c->windows[i].title_color = 0xFF00D4C8;  // teal title bar
             c->windows[i].visible = 1;
             jagx_strncpy(c->windows[i].title, title, 48);
             c->window_count++;
@@ -50,17 +50,39 @@ void compositor_destroy_window(struct compositor* c, int id) {
     c->window_count--;
 }
 
-/* Draw all visible windows as colored rectangles */
 void compositor_render(struct compositor* c) {
     if (!fb_is_ready()) return;
 
+    // Background
+    fb_clear(0xFF0A0A12);
+
     for (int i = 0; i < MAX_WINDOWS; i++) {
-        if (c->windows[i].visible && c->windows[i].id != -1) {
-            struct jagx_window* w = &c->windows[i];
-            /* Window body */
-            fb_fill_rect(w->x, w->y, w->width, w->height, w->color);
-            /* Simple darker title bar */
-            fb_fill_rect(w->x, w->y, w->width, 28, 0xFF1A1A2E);
+        if (!c->windows[i].visible || c->windows[i].id == -1) continue;
+
+        struct jagx_window* w = &c->windows[i];
+
+        // Drop shadow
+        fb_fill_rect(w->x + 6, w->y + 6, w->width, w->height, 0xFF000000);
+
+        // Window body
+        fb_fill_rect(w->x, w->y, w->width, w->height, w->color);
+
+        // Title bar (real chrome)
+        fb_fill_rect(w->x, w->y, w->width, 32, w->title_color);
+
+        // Close button (simple red square)
+        fb_fill_rect(w->x + w->width - 28, w->y + 6, 20, 20, 0xFFE74C3C);
+
+        // Focus indicator line
+        if (i == c->focused_id) {
+            fb_fill_rect(w->x, w->y + 32, w->width, 2, 0xFF7B5EA7);
         }
     }
+}
+
+void compositor_draw_cursor(int x, int y) {
+    if (!fb_is_ready()) return;
+    // Simple 12x12 cursor
+    fb_fill_rect(x, y, 12, 12, 0xFFFFFFFF);
+    fb_fill_rect(x + 2, y + 2, 8, 8, 0xFF00D4C8);
 }

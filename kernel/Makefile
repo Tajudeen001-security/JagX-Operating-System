@@ -20,6 +20,7 @@ OBJS = arch/x86_64/boot.o \
        arch/x86_64/pic.o \
        arch/x86_64/timer.o \
        arch/x86_64/keyboard.o \
+       arch/x86_64/mouse.o \
        arch/x86_64/irq.o \
        arch/x86_64/console.o \
        arch/x86_64/framebuffer.o \
@@ -31,9 +32,10 @@ OBJS = arch/x86_64/boot.o \
        fs/ramfs.o \
        syscall/syscall.o \
        ../compositor/compositor.o \
-       ../net/net.o
+       ../net/net.o \
+       ../net/virtio_net.o
 
-.PHONY: all clean run
+.PHONY: all clean run iso
 
 all: jagx.kernel
 
@@ -50,7 +52,8 @@ jagx.kernel: $(OBJS) linker.ld
 clean:
 	rm -f $(OBJS) jagx.kernel
 
-# Multiboot2 + framebuffer works best with a proper Multiboot2 loader.
-# For quick tests QEMU -kernel still boots the entry point.
 run: jagx.kernel
 	qemu-system-i386 -kernel jagx.kernel -m 128M -serial stdio
+
+iso: jagx.kernel
+	cd ../boot && bash build-iso.sh

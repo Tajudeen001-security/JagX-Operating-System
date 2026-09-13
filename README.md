@@ -1,23 +1,28 @@
 # JagX Operating System
 
-Original open-source OS (no Linux / Android / iOS base) for **PC** and **Mobile**.
+Original from-scratch OS for PC and Mobile (no Linux/Android/iOS base).
 
-## Visual Direction
-Dark theme • Electric teal • Soft purple • Premium & fast-feeling
+## v0.0.6 Highlights (Real code)
 
-## Current Status (v0.0.5)
+- **aarch64**: MMU identity map actually enabled + UART
+- **PS/2 mouse** driver (position + buttons)
+- **Compositor** draws real window chrome (title bar, close button, shadow, cursor)
+- **Virtio-net** PCI detection
+- **GRUB + ISO** build path for reliable Multiboot2 framebuffer
 
-| Area                | Status                                      |
-|---------------------|---------------------------------------------|
-| x86 Kernel          | Multiboot2, memory, interrupts, syscalls    |
-| Framebuffer         | Real pixel drawing when FB tag present      |
-| Compositor          | Draws simple colored windows                |
-| aarch64 / Mobile    | Exceptions + early MMU path                 |
-| Networking          | Stub + loopback                             |
-| JagBrowser          | Architecture defined                        |
-| Design System       | Documented                                  |
+## Quick start
 
-## Repository
+```bash
+cd kernel
+make
+make run          # text / limited FB
+
+# For proper graphical boot:
+make iso
+qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
+```
+
+## Design
+Dark theme · Electric teal · Soft purple · Built for both desktop and excellent mobile experience.
+
 https://github.com/Tajudeen001-security/JagX-Operating-System
-
-MIT License

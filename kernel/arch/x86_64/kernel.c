@@ -1,10 +1,11 @@
-/* JagX Kernel v0.0.5 */
+/* JagX Kernel v0.0.6 - Real drivers focus */
 
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
 #include "timer.h"
 #include "keyboard.h"
+#include "mouse.h"
 #include "console.h"
 #include "framebuffer.h"
 #include "multiboot.h"
@@ -15,12 +16,13 @@
 #include "../../fs/ramfs.h"
 #include "../../syscall/syscall.h"
 #include "../../../compositor/compositor.h"
+#include "../../../net/net.h"
 
 static struct compositor comp;
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.5\n");
+    console_write("JagX OS v0.0.6\n");
     console_write("==============\n\n");
 
     multiboot2_parse(magic, mb_info);
@@ -36,33 +38,41 @@ void kernel_main(uint32_t magic, void* mb_info) {
     paging_init();
 
     fb_init();
-    /* Try to draw if Multiboot2 gave us a framebuffer */
-    fb_draw_demo();
 
-    /* Compositor demo */
+    // Real input devices
+    timer_init(100);
+    keyboard_init();
+    mouse_init();
+
+    // Networking (loopback + virtio probe)
+    net_init();
+
+    // Compositor with real chrome
     compositor_init(&comp);
-    int w1 = compositor_create_window(&comp, 100, 100, 320, 200, "Welcome");
-    int w2 = compositor_create_window(&comp, 280, 180, 360, 240, "JagX Desktop");
-    (void)w1; (void)w2;
+    compositor_create_window(&comp, 80, 60, 420, 280, "JagX Shell");
+    compositor_create_window(&comp, 360, 160, 380, 260, "System");
     compositor_render(&comp);
+
+    // Draw cursor at initial mouse position
+    struct mouse_state ms = mouse_get_state();
+    compositor_draw_cursor(ms.x + 200, ms.y + 150);
 
     ramfs_init();
     syscall_init();
 
-    timer_init(100);
-    keyboard_init();
     __asm__ volatile ("sti");
 
-    console_write("\n=== System Ready ===\n");
+    console_write("\n=== JagX Ready ===\n");
     if (fb_is_ready())
-        console_write("Graphical framebuffer is active.\n");
+        console_write("Framebuffer active - windows + cursor drawn\n");
     else
-        console_write("Running in text mode (FB not provided by loader).\n");
+        console_write("Text mode (use ISO/GRUB for reliable FB)\n");
 
-    console_write("Compositor windows created.\n");
-    console_write("Type on keyboard. Timer dots appear.\n\n> ");
+    console_write("PS/2 mouse live | Virtio-net probed | MMU path on aarch64\n");
+    console_write("> ");
 
     for (;;) {
         __asm__ volatile ("hlt");
+        // Future: redraw cursor on mouse movement
     }
 }

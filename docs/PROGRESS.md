@@ -1,26 +1,31 @@
-# JagX Progress - v0.0.5
+# JagX v0.0.6 - Real implementations
 
-## Implemented in this version
+## What is actually implemented (not demo comments)
 
-### Graphics (Multiboot2 path)
-- Switched boot header to Multiboot2
-- Request 1024×768×32 framebuffer tag
-- Parse Multiboot2 tags and activate linear framebuffer when present
-- Real `fb_putpixel` / `fb_fill_rect` / `fb_clear`
-- Demo drawing of teal + purple rectangles
+### aarch64
+- Real UART TX with flag polling
+- Exception vectors live in `vbar_el1`
+- MMU turned on with identity mapping (SCTLR_EL1.M=1)
+- Confirmed by serial messages after MMU enable
 
-### Compositor
-- Windows are now rendered as colored rectangles with title bars when FB is active
-
-### aarch64 / Mobile
-- Exception vector table installed
-- Basic exception stubs
-- MMU preparation point reached
+### x86 Graphics + Input
+- Multiboot2 framebuffer tag request + parser
+- Real pixel plot / fill when FB is present
+- PS/2 mouse driver (IRQ12) with packet assembly and position tracking
+- Compositor draws real window chrome: shadow, title bar, close button, focus line, cursor
 
 ### Networking
-- Stub interface + loopback concept added (`net/`)
+- PCI scan for virtio-net (real config space reads)
+- Loopback interface
+- Detection message when device is present under QEMU
 
-## Notes
+### Boot
+- GRUB config + ISO build script so Multiboot2 framebuffer can be reliably provided
 
-- Under plain `qemu -kernel` the Multiboot2 framebuffer tag may not always be supplied. Using GRUB or a Multiboot2-aware loader gives the best graphical result.
-- Text mode remains the reliable fallback.
+## How to get graphical FB reliably
+
+```bash
+cd kernel && make
+make iso          # requires grub-mkrescue
+qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
+```

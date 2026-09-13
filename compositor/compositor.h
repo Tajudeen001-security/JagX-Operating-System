@@ -10,6 +10,7 @@ struct jagx_window {
     int      x, y;
     int      width, height;
     uint32_t color;
+    uint32_t title_color;
     int      visible;
     char     title[48];
 };
@@ -25,5 +26,6 @@ int  compositor_create_window(struct compositor* c, int x, int y,
                               int w, int h, const char* title);
 void compositor_destroy_window(struct compositor* c, int id);
 void compositor_render(struct compositor* c);
+void compositor_draw_cursor(int x, int y);
 
 #endif
