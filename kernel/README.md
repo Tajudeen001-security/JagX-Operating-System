@@ -1,30 +1,20 @@
-# JagX Kernel v0.0.3
+# JagX Kernel v0.0.4
 
-## Current Features
+## Highlights
 
-- GDT + IDT + PIC + Timer + Keyboard (Shift/Caps)
-- Physical Memory Manager + simple Heap
-- Basic Paging
-- RamFS
-- Syscall dispatcher stub
-- **Early Framebuffer layer** (preparation for graphical boot & UI)
+- Multiboot memory info parsing
+- Improved physical memory sizing
+- Framebuffer preparation + design color demo
+- aarch64 UART stub for mobile path
+- Early compositor structures
+- JagBrowser architecture started
 
-## Design Direction
-
-We are building toward the dark + teal/purple premium look you liked:
-
-- Graphical bootscreen
-- Modern mobile home & multitasking
-- Clean settings, notifications, file manager
-- Own browser (JagBrowser)
-
-Text mode is still the current runtime console.  
-The framebuffer code is the bridge to the visual OS.
-
-## Build
+## Build & Run
 
 ```bash
 cd kernel
 make
 make run
 ```
+
+You should see Multiboot memory information and the design color notes.

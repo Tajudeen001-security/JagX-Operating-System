@@ -1,7 +1,3 @@
-# ============================================================
-# JagX Kernel Makefile
-# ============================================================
-
 CC      ?= i686-elf-gcc
 AS      ?= i686-elf-as
 LD      ?= i686-elf-ld
@@ -14,7 +10,7 @@ endif
 
 CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra \
           -fno-stack-protector -fno-pic -mno-red-zone \
-          -I arch/x86_64 -I mm -I fs -I syscall
+          -I arch/x86_64 -I mm -I fs -I syscall -I ../compositor
 
 ASFLAGS =
 LDFLAGS = -T linker.ld -nostdlib
@@ -28,6 +24,7 @@ OBJS = arch/x86_64/boot.o \
        arch/x86_64/irq.o \
        arch/x86_64/console.o \
        arch/x86_64/framebuffer.o \
+       arch/x86_64/multiboot.o \
        arch/x86_64/kernel.o \
        mm/pmm.o \
        mm/heap.o \

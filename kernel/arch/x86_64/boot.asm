@@ -1,29 +1,27 @@
 ; ============================================================
-; JagX OS - Boot entry point (Multiboot + protected mode)
+; JagX OS - Boot entry point (Multiboot)
 ; ============================================================
-; Loaded by GRUB in 32-bit protected mode with flat segments.
-; We set up our own GDT, then jump to C kernel.
 
 section .multiboot
 align 4
-    dd 0x1BADB002              ; Multiboot magic
-    dd 0x00                    ; Flags (none for now)
-    dd -(0x1BADB002 + 0x00)    ; Checksum
+    dd 0x1BADB002              ; Magic
+    dd 0x00000003              ; Flags: align modules + memory info
+    dd -(0x1BADB002 + 0x00000003)
 
 section .text
 global _start
 global gdt_flush
 global idt_load
-global irq_common_stub
 
 extern kernel_main
-extern irq_handler
 
 _start:
-    ; Set up a temporary stack
     mov esp, stack_top
 
-    ; Jump into the C kernel (GDT/IDT will be set up there)
+    ; Pass Multiboot magic and info pointer to kernel_main
+    ; eax = magic, ebx = multiboot_info pointer (set by bootloader)
+    push ebx                   ; multiboot_info*
+    push eax                   ; magic
     call kernel_main
 
 .hang:
@@ -31,44 +29,31 @@ _start:
     hlt
     jmp .hang
 
-; ------------------------------------------------------------
-; gdt_flush - load new GDT and reload segment registers
-; void gdt_flush(uint32_t gdt_ptr)
-; ------------------------------------------------------------
 gdt_flush:
-    mov eax, [esp + 4]         ; Get pointer to GDT descriptor
+    mov eax, [esp + 4]
     lgdt [eax]
-
-    mov ax, 0x10               ; Data segment selector (index 2)
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
     mov ss, ax
-
-    ; Far jump to reload CS (code segment = index 1 = 0x08)
     jmp 0x08:.flush
 .flush:
     ret
 
-; ------------------------------------------------------------
-; idt_load - load IDT
-; void idt_load(uint32_t idt_ptr)
-; ------------------------------------------------------------
 idt_load:
     mov eax, [esp + 4]
     lidt [eax]
     ret
 
-; ------------------------------------------------------------
-; Common IRQ stub - saves state, calls C handler, restores
-; ------------------------------------------------------------
+; IRQ and ISR stubs (same as before)
 %macro IRQ_STUB 1
 global irq%1
 irq%1:
     cli
-    push byte 0                ; Dummy error code
-    push byte %1               ; IRQ number
+    push byte 0
+    push byte %1
     jmp irq_common_stub
 %endmacro
 
@@ -89,34 +74,27 @@ IRQ_STUB 13
 IRQ_STUB 14
 IRQ_STUB 15
 
+extern irq_handler
 irq_common_stub:
-    pusha                      ; Save all general purpose registers
-
+    pusha
     mov ax, ds
-    push eax                   ; Save data segment
-
-    mov ax, 0x10               ; Load kernel data segment
+    push eax
+    mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-
-    call irq_handler           ; Call C handler
-
+    call irq_handler
     pop eax
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-
     popa
-    add esp, 8                 ; Clean up error code + IRQ number
+    add esp, 8
     sti
     iret
 
-; ------------------------------------------------------------
-; Exception stubs (some have error codes, some don't)
-; ------------------------------------------------------------
 %macro ISR_NOERR 1
 global isr%1
 isr%1:
@@ -168,27 +146,21 @@ ISR_ERR   30
 ISR_NOERR 31
 
 extern isr_handler
-
 isr_common_stub:
     pusha
-
     mov ax, ds
     push eax
-
     mov ax, 0x10
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-
     call isr_handler
-
     pop eax
     mov ds, ax
     mov es, ax
     mov fs, ax
     mov gs, ax
-
     popa
     add esp, 8
     sti
@@ -197,5 +169,5 @@ isr_common_stub:
 section .bss
 align 16
 stack_bottom:
-    resb 32768                 ; 32 KiB stack
+    resb 32768
 stack_top:
