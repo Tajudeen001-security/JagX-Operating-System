@@ -1,107 +1,78 @@
 # JagX Operating System
 
-**JagX** is an original, open-source operating system designed for both **PC** and **Mobile** devices.
+**JagX** is an original, open-source operating system built **from scratch** — no Linux, no Android, no iOS base.
 
-It is **not** based on Linux, Android, iOS, Windows, or any existing operating system.  
-We are building our own kernel, drivers, userland, and applications from the ground up.
+It targets both **PC** and **Mobile** as first-class citizens, with a special ambition:
 
-## Vision
+> **Make the JagX Mobile experience one of the best in the world** — smooth, private, efficient, beautiful, and under the user’s full control.
 
-- Fully independent kernel written primarily in C and Assembly
-- Dual target: desktop (x86_64 + ARM64) and mobile (ARM64)
-- Own graphical user interface (or TUI first)
-- **Own web browser** (JagBrowser) built into the system
-- Secure by design, modern, and lightweight
-- Completely free and open source
+## Core Goals
 
-## Current Status
+- Completely independent kernel and system software
+- Dual architecture support: x86_64 (PC) + aarch64 (Mobile & modern PC)
+- Own native web browser (**JagBrowser**)
+- Security and privacy by design
+- Excellent mobile experience as a top priority (not an afterthought)
 
-This is the **very beginning**. The repository currently contains:
+## Why JagX Mobile aims to be among the best
 
-- Project structure
-- Vision & roadmap
-- Minimal bootloader + kernel skeleton (x86)
-- Placeholder for the JagBrowser
-- Documentation
+Most mobile operating systems today are either closed (iOS) or heavy Linux-based (Android).  
+JagX Mobile is designed from day one with these principles:
 
-Building a real OS is a multi-year effort. Contributions, ideas, and serious developers are welcome.
+- **Extremely low input latency** (touch and gesture pipeline optimized)
+- **Predictable performance** and smooth 120 Hz+ UI when hardware allows
+- **Aggressive but intelligent power management**
+- **Strong privacy defaults** and transparent permission model
+- **Lightweight base** — no unnecessary background services
+- **Beautiful, modern, consistent design language**
+- **Full user ownership** — no forced accounts, no telemetry by default
+- **Long-term updateability** even on older devices
 
-## Repository Structure
+## Current Status (Early)
+
+| Area              | Status                          |
+|-------------------|---------------------------------|
+| x86 Kernel        | Bootable, interrupts, memory, basic FS & syscalls |
+| aarch64 / Mobile  | Architecture skeleton + design docs |
+| Graphics          | VGA text only (framebuffer later) |
+| Touch / Gestures  | Design phase                    |
+| Power Management  | Design phase                    |
+| JagBrowser        | Placeholder                     |
+| Userspace         | Very early stubs                |
+
+## Repository Layout
 
 ```
 JagX-Operating-System/
-├── boot/               # Bootloaders (BIOS/UEFI, mobile boot)
-├── kernel/             # Core kernel (architecture independent + arch specific)
+├── kernel/           # Shared + arch-specific kernel code
 │   ├── arch/
 │   │   ├── x86_64/
-│   │   └── aarch64/
-│   ├── core/           # Scheduler, memory management, etc.
-│   └── drivers/
-├── browser/            # JagBrowser – native web browser for JagX
-├── userland/           # Future userspace programs & libraries
-├── docs/               # Design documents, architecture, roadmap
-├── tools/              # Build tools, cross compilers helpers, QEMU scripts
-├── LICENSE
-└── README.md
+│   │   └── aarch64/  # Mobile & modern ARM PC
+│   ├── mm/
+│   ├── fs/
+│   └── syscall/
+├── mobile/           # Mobile-specific design, UX, HAL ideas
+├── browser/          # JagBrowser
+├── docs/             # Architecture, vision, roadmaps
+└── ...
 ```
 
-## Building (Very Early)
-
-Currently only a minimal x86 kernel skeleton exists.  
-You will need a cross-compiler (`x86_64-elf-gcc`) and QEMU.
+## Building the current (x86) kernel
 
 ```bash
-# Example (will be improved)
 cd kernel
 make
-qemu-system-x86_64 -kernel jagx.kernel
+make run          # QEMU
 ```
-
-Detailed build instructions will be added as the code matures.
-
-## Roadmap (High Level)
-
-### Phase 0 – Foundation (Current)
-- [x] Repository & structure
-- [ ] Minimal bootable kernel (x86)
-- [ ] Basic memory management
-- [ ] Interrupt handling
-
-### Phase 1 – Core Kernel
-- Process/thread management
-- Virtual memory
-- Device drivers (basic)
-- Filesystem (simple)
-
-### Phase 2 – Desktop & Mobile Foundations
-- Graphical subsystem
-- Input (keyboard/mouse/touch)
-- Windowing system
-- Mobile-specific power & touch stack
-
-### Phase 3 – User Experience
-- JagBrowser (own web browser)
-- App framework
-- Settings, file manager, etc.
-
-### Phase 4 – Production Ready
-- Security model
-- Networking
-- Package system
-- Stable releases for PC and Mobile
 
 ## Contributing
 
-This is a serious long-term project.  
-If you know low-level systems programming (C, Assembly, OS development), feel free to open issues or pull requests.
-
-Please read the docs/ folder before contributing large changes.
+This is a long-term, ambitious project. Low-level systems programmers, mobile UI/UX people, and security-minded developers are especially welcome.
 
 ## License
 
-JagX is released under the **MIT License** (see LICENSE file).
+MIT License — fully open source.
 
 ---
 
-**Made with ambition by the community.**  
-Let's build something truly original.
+**JagX** — Own your computer. Own your phone.

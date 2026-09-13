@@ -1,30 +1,33 @@
 # JagX Vision
 
-JagX is an original operating system.
+## The Big Picture
 
-### Core Principles
+JagX is a completely original operating system.
 
-1. **Independence**  
-   No Linux kernel, no Android runtime, no iOS, no Windows.  
-   We write our own kernel and system software.
+We reject the idea that the only realistic choices are:
+- Closed proprietary systems (iOS / Windows)
+- Linux-based systems (Android, most desktop distros)
 
-2. **Dual Platform**  
-   One project, two first-class targets:
-   - **PC** (x86_64 and later ARM64 desktops/laptops)
-   - **Mobile** (ARM64 phones and tablets)
+Instead we are building our own kernel, drivers, graphics stack, and applications.
 
-3. **Own Browser**  
-   JagBrowser will be a native web browser written for JagX, not a port of Chromium/Firefox/WebKit.
+### Dual First-Class Platforms
 
-4. **Modern & Secure**  
-   Capability-based security, modern memory safety practices where possible, clean architecture.
+- **PC** (x86_64 and aarch64)
+- **Mobile** (primarily aarch64)
 
-5. **Open Source**  
-   Fully open. Anyone can study, modify, and redistribute.
+Both share the same core kernel and design philosophy, with platform-specific layers on top.
 
-### Why from scratch?
+### Mobile Ambition
 
-Most "new" operating systems today are just Linux distributions or Android skins.  
-JagX aims to be a genuine alternative — smaller, more controllable, and designed from day one for both desktop and mobile use cases.
+JagX Mobile is not “Android with a different launcher”.  
+It is being designed to compete at the highest level on:
 
-This is ambitious. Progress will be slow at first. That's expected.
+1. **Responsiveness** – Touch-to-photon latency as low as possible
+2. **Battery life** – Intelligent, fine-grained power management
+3. **Privacy & Security** – Capability-based model, minimal attack surface
+4. **Smoothness** – Consistent frame timing, no jank
+5. **Longevity** – Clean architecture that stays maintainable for years
+6. **User Freedom** – No forced cloud accounts, no dark patterns
+7. **Beauty** – A coherent, modern visual and interaction language
+
+We believe a carefully designed from-scratch system can eventually surpass the current mobile giants in several of these areas, especially privacy, efficiency, and long-term control.
