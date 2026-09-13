@@ -54,10 +54,13 @@ void pkg_bundle_core_apps(void) {
         "name=JagCircle\npackage=com.jagx.social\nversion=1.0.0\nvendor=JagX\narch=any\nentry=social.main\nmin_os=0.1.0\nperm=social,network\n",
         "SOCIAL_APP", "/packages/social.jagx");
     install_one(
+        "name=JagX Connect\npackage=com.jagx.connect\nversion=1.0.0\nvendor=JagX & JRILICENSE\narch=any\nentry=connect.main\nmin_os=0.1.0\nperm=social,network,storage,camera\n",
+        "CONNECT_APP", "/packages/connect.jagx");
+    install_one(
         "name=JagBrowser\npackage=com.jagx.browser\nversion=1.0.0\nvendor=JagX\narch=any\nentry=browser.main\nmin_os=0.1.0\nperm=network\n",
         "BROWSER_APP", "/packages/browser.jagx");
     install_one(
         "name=JagStore\npackage=com.jagx.store\nversion=1.0.0\nvendor=JagX\narch=any\nentry=store.main\nmin_os=0.1.0\nperm=storage\n",
         "STORE_APP", "/packages/store.jagx");
-    console_write("[PKG] Core apps packaged as .jagx (APK refused)\n");
+    console_write("[PKG] Core apps packaged as .jagx including Connect (APK refused)\n");
 }
