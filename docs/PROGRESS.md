@@ -1,22 +1,19 @@
-# JagX v0.0.10
+# JagX v0.0.11
 
 ## Networking
-- Real IPv4 header + checksum
-- Real UDP datagram builder
-- DNS A query sent via UDP/IPv4 → virtio TX (on-wire path)
-- RX/parse of DNS answers still next
+- Virtio **RX** path (`virtio_net_receive`)
+- DNS response parser for A records
+- `dns_resolve_a` polls RX after query
+- Minimal **HTTP GET** builder + DNS dependency (TCP ESTABLISHED still required for full fetch)
 
 ## Userspace
-- GDT user code/data segments
-- TSS loaded (`ltr`)
-- `enter_user_mode()` iret path to ring 3
-- int 0x80 from user side prepared
+- Mapped `user_stack[8192]`
+- **`enter_user_mode()` is actually called** with entry + stack
 
 ## Crypto
-- ChaCha20 core (real quarter rounds)
-- AEAD encrypt/decrypt with development Poly1305-style tag
-- Self-test in kernel boot
+- **Full Poly1305** limb implementation + ChaCha20 AEAD
 
-## Secure boot
-- `boot_verify_marker()` / `boot_verify_buffer()` using SHA-256
-- Kernel refuses to continue if marker hash path fails
+## Remaining for live web pages
+- Complete TCP handshake + payload
+- TLS for HTTPS sites
+- HTML renderer in compositor

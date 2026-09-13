@@ -15,13 +15,12 @@ OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o 
   arch/x86_64/boot_verify.o arch/x86_64/kernel.o \
   mm/pmm.o mm/heap.o mm/paging.o fs/ramfs.o syscall/syscall.o \
   ../compositor/compositor.o ../net/net.o ../net/virtio_net.o ../net/dns.o ../net/tcp.o \
-  ../net/ipv4.o ../net/udp.o ../userland/process.o \
+  ../net/ipv4.o ../net/udp.o ../net/http.o ../userland/process.o \
   ../crypto/sha256.o ../crypto/aead.o ../crypto/chacha20poly1305.o
 .PHONY: all clean run iso
 all: jagx.kernel
 jagx.kernel: $(OBJS) linker.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
-	@echo Built jagx.kernel
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
 %.o: %.asm

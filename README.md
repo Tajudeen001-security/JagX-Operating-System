@@ -1,11 +1,10 @@
-# JagX OS v0.0.10
+# JagX OS v0.0.11
 
 Founder: **Gbadamosi Tajudeen Olajide**
 
-### New
-- **IPv4 + UDP** so DNS queries go through virtio TX
-- **TSS + Ring-3** enter path
-- **ChaCha20-Poly1305** AEAD (ChaCha20 real; MAC simplified for size)
-- **Boot hash verify** before continuing
+- Virtio RX + DNS A parse
+- Real ring-3 entry with user stack
+- Full Poly1305 + ChaCha20 AEAD
+- HTTP client skeleton (after DNS)
 
 https://github.com/Tajudeen001-security/JagX-Operating-System

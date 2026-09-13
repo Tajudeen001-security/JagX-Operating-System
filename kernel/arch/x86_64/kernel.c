@@ -1,4 +1,4 @@
-/* JagX v0.0.10 */
+/* JagX v0.0.11 */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -16,34 +16,31 @@
 #include "../../../compositor/compositor.h"
 #include "../../../net/net.h"
 #include "../../../net/dns.h"
+#include "../../../net/http.h"
 #include "../../../userland/process.h"
-#include "../../../crypto/sha256.h"
 #include "../../../crypto/aead.h"
 
 extern int boot_verify_marker(void);
-
 struct compositor g_compositor;
 
-/* Tiny user-mode payload: issue write syscall then hlt loop */
+static uint8_t user_stack[8192] __attribute__((aligned(16)));
+
 static void user_program(void) {
-    const char* s = "[USER] Hello from ring 3 via int 0x80\n";
+    const char* s = "[USER] Hello from ring 3\n";
     __asm__ volatile (
         "mov $1, %%eax\n"
         "mov %0, %%ebx\n"
         "int $0x80\n"
-        :
-        : "r"(s)
-        : "eax", "ebx"
+        : : "r"(s) : "eax", "ebx"
     );
     for (;;) __asm__ volatile ("hlt");
 }
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.10\n===============\n\n");
+    console_write("JagX OS v0.0.11\n===============\n\n");
 
     if (boot_verify_marker() != 0) {
-        console_write("Halting on integrity failure\n");
         for (;;) __asm__ volatile ("hlt");
     }
 
@@ -61,23 +58,24 @@ void kernel_main(uint32_t magic, void* mb_info) {
     mouse_init();
     net_init();
 
-    /* On-wire DNS attempt */
-    uint32_t ip = 0;
-    dns_resolve_a("example.com", &ip);
-
     process_init();
-    process_create("userdemo", (uint32_t)user_program, 0xB00000);
+    uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
+    process_create("userdemo", (uint32_t)user_program, ustack);
+    tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
-    /* AEAD smoke test */
+    /* AEAD test */
     uint8_t key[32], nonce[12], pt[16], ct[16], tag[16], out[16];
     for (int i = 0; i < 32; i++) key[i] = (uint8_t)i;
-    for (int i = 0; i < 12; i++) nonce[i] = (uint8_t)(i + 1);
-    for (int i = 0; i < 16; i++) pt[i] = (uint8_t)('A' + i);
-    if (aead_encrypt(key, 32, nonce, 12, 0, 0, pt, 16, ct, tag, 16) == 0 &&
-        aead_decrypt(key, 32, nonce, 12, 0, 0, ct, 16, tag, 16, out) == 0)
-        console_write("[CRYPTO] ChaCha20-Poly1305 encrypt/decrypt OK\n");
-    else
-        console_write("[CRYPTO] AEAD test failed\n");
+    for (int i = 0; i < 12; i++) nonce[i] = (uint8_t)(i+1);
+    for (int i = 0; i < 16; i++) pt[i] = (uint8_t)('A'+i);
+    if (aead_encrypt(key,32,nonce,12,0,0,pt,16,ct,tag,16)==0 &&
+        aead_decrypt(key,32,nonce,12,0,0,ct,16,tag,16,out)==0)
+        console_write("[CRYPTO] ChaCha20-Poly1305 OK\n");
+
+    /* HTTP attempt (DNS + request build) */
+    uint8_t http_buf[256];
+    uint32_t got = 0;
+    http_get("example.com", "/", http_buf, sizeof(http_buf), &got);
 
     compositor_init(&g_compositor);
     compositor_create_window(&g_compositor, 60, 50, 400, 260, "JagX");
@@ -85,15 +83,11 @@ void kernel_main(uint32_t magic, void* mb_info) {
 
     ramfs_init();
     syscall_init();
-    tss_set_stack((uint32_t)&magic + 0x4000); /* rough kernel stack anchor */
-
     __asm__ volatile ("sti");
-    console_write("\n=== Ready ===\n");
-    console_write("IPv4/UDP path active | TSS+Ring3 ready | AEAD live | boot hash OK\n");
 
-    /* Optional: actually enter user mode demo (may not return) */
-    /* enter_user_mode((uint32_t)user_program, 0xB00000); */
+    console_write("\n=== Entering user mode ===\n");
+    enter_user_mode((uint32_t)user_program, ustack);
 
-    console_write("> ");
+    /* If returned */
     for (;;) __asm__ volatile ("hlt");
 }
