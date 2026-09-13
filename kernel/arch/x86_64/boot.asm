@@ -1,12 +1,30 @@
 ; ============================================================
-; JagX OS - Boot entry point (Multiboot)
+; JagX OS - Multiboot2 entry + protected mode
 ; ============================================================
 
 section .multiboot
-align 4
-    dd 0x1BADB002              ; Magic
-    dd 0x00000003              ; Flags: align modules + memory info
-    dd -(0x1BADB002 + 0x00000003)
+align 8
+header_start:
+    dd 0xE85250D6                ; Multiboot2 magic
+    dd 0                         ; Architecture (i386)
+    dd header_end - header_start ; Header length
+    dd -(0xE85250D6 + 0 + (header_end - header_start))
+
+    ; Framebuffer tag - request 1024x768x32
+    align 8
+    dw 5                         ; Type: framebuffer
+    dw 0                         ; Flags
+    dd 20                        ; Size
+    dd 1024                      ; Width
+    dd 768                       ; Height
+    dd 32                        ; Depth
+
+    ; End tag
+    align 8
+    dw 0
+    dw 0
+    dd 8
+header_end:
 
 section .text
 global _start
@@ -18,10 +36,9 @@ extern kernel_main
 _start:
     mov esp, stack_top
 
-    ; Pass Multiboot magic and info pointer to kernel_main
-    ; eax = magic, ebx = multiboot_info pointer (set by bootloader)
-    push ebx                   ; multiboot_info*
-    push eax                   ; magic
+    ; Multiboot2: eax = magic (0x36d76289), ebx = info pointer
+    push ebx
+    push eax
     call kernel_main
 
 .hang:
@@ -47,7 +64,6 @@ idt_load:
     lidt [eax]
     ret
 
-; IRQ and ISR stubs (same as before)
 %macro IRQ_STUB 1
 global irq%1
 irq%1:

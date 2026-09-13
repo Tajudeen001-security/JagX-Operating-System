@@ -1,7 +1,4 @@
-/* ============================================================
- * JagX Kernel v0.0.4
- * ============================================================
- */
+/* JagX Kernel v0.0.5 */
 
 #include "gdt.h"
 #include "idt.h"
@@ -17,55 +14,53 @@
 #include "../../mm/paging.h"
 #include "../../fs/ramfs.h"
 #include "../../syscall/syscall.h"
+#include "../../../compositor/compositor.h"
 
-void kernel_main(uint32_t magic, struct multiboot_info* mb_info) {
+static struct compositor comp;
+
+void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX Operating System v0.0.4\n");
-    console_write("=============================\n\n");
+    console_write("JagX OS v0.0.5\n");
+    console_write("==============\n\n");
 
-    /* Multiboot + memory */
-    multiboot_parse(magic, mb_info);
+    multiboot2_parse(magic, mb_info);
 
-    console_write("[*] GDT...\n");
     gdt_init();
-
-    console_write("[*] IDT...\n");
     idt_init();
-
-    console_write("[*] PIC...\n");
     pic_remap();
 
-    /* Fallback PMM if multiboot did not re-init */
-    if (pmm_get_total_pages() == 0) {
+    if (pmm_get_total_pages() == 0)
         pmm_init(128 * 1024);
-    }
 
     heap_init();
     paging_init();
 
     fb_init();
-    fb_demo_design_colors();
+    /* Try to draw if Multiboot2 gave us a framebuffer */
+    fb_draw_demo();
+
+    /* Compositor demo */
+    compositor_init(&comp);
+    int w1 = compositor_create_window(&comp, 100, 100, 320, 200, "Welcome");
+    int w2 = compositor_create_window(&comp, 280, 180, 360, 240, "JagX Desktop");
+    (void)w1; (void)w2;
+    compositor_render(&comp);
 
     ramfs_init();
     syscall_init();
 
-    console_write("[*] Timer...\n");
     timer_init(100);
-
-    console_write("[*] Keyboard...\n");
     keyboard_init();
-
     __asm__ volatile ("sti");
 
-    console_write("\n=== JagX Ready ===\n");
-    console_write("Multiboot memory info parsed.\n");
-    console_write("Framebuffer layer + design colors ready.\n");
-    console_write("Type to test keyboard. Dots = timer.\n\n");
+    console_write("\n=== System Ready ===\n");
+    if (fb_is_ready())
+        console_write("Graphical framebuffer is active.\n");
+    else
+        console_write("Running in text mode (FB not provided by loader).\n");
 
-    ramfs_list();
-    console_write("\n> ");
-
-    syscall_handler(1, (uint32_t)"[DEMO] All core systems online\n", 0, 0);
+    console_write("Compositor windows created.\n");
+    console_write("Type on keyboard. Timer dots appear.\n\n> ");
 
     for (;;) {
         __asm__ volatile ("hlt");

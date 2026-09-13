@@ -3,15 +3,15 @@
 
 #include <stdint.h>
 
-#define MAX_WINDOWS 32
+#define MAX_WINDOWS 16
 
 struct jagx_window {
     int      id;
     int      x, y;
     int      width, height;
-    uint32_t color;          /* temporary solid color until real buffers */
+    uint32_t color;
     int      visible;
-    char     title[64];
+    char     title[48];
 };
 
 struct compositor {
@@ -21,7 +21,9 @@ struct compositor {
 };
 
 void compositor_init(struct compositor* c);
-int  compositor_create_window(struct compositor* c, int x, int y, int w, int h, const char* title);
+int  compositor_create_window(struct compositor* c, int x, int y,
+                              int w, int h, const char* title);
 void compositor_destroy_window(struct compositor* c, int id);
+void compositor_render(struct compositor* c);
 
 #endif

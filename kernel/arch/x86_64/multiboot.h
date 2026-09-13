@@ -3,29 +3,26 @@
 
 #include <stdint.h>
 
-#define MULTIBOOT_MAGIC 0x2BADB002
+#define MULTIBOOT2_MAGIC 0x36D76289
 
-struct multiboot_info {
-    uint32_t flags;
-    uint32_t mem_lower;
-    uint32_t mem_upper;
-    uint32_t boot_device;
-    uint32_t cmdline;
-    uint32_t mods_count;
-    uint32_t mods_addr;
-    uint32_t syms[4];
-    uint32_t mmap_length;
-    uint32_t mmap_addr;
-    /* more fields exist but we use these for now */
-} __attribute__((packed));
-
-struct multiboot_mmap_entry {
-    uint32_t size;
-    uint64_t addr;
-    uint64_t len;
+/* We keep a simplified parser focused on framebuffer + basic memory */
+struct multiboot_tag {
     uint32_t type;
-} __attribute__((packed));
+    uint32_t size;
+};
 
-void multiboot_parse(uint32_t magic, struct multiboot_info* info);
+struct multiboot_tag_framebuffer {
+    uint32_t type;
+    uint32_t size;
+    uint64_t framebuffer_addr;
+    uint32_t framebuffer_pitch;
+    uint32_t framebuffer_width;
+    uint32_t framebuffer_height;
+    uint8_t  framebuffer_bpp;
+    uint8_t  framebuffer_type;
+    uint16_t reserved;
+};
+
+void multiboot2_parse(uint32_t magic, void* info);
 
 #endif

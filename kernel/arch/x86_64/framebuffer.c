@@ -1,49 +1,67 @@
-/* Early Framebuffer + colorful demo for JagX
- *
- * We keep VGA text as the reliable console under QEMU -kernel.
- * This file adds:
- *  - Structure for real linear framebuffers later
- *  - A colorful text-mode visual demo that shows the design colors
- */
-
 #include "framebuffer.h"
 #include "console.h"
-#include "io.h"
 
 static struct framebuffer fb = {0};
 
 void fb_init(void) {
-    fb.addr = 0;
-    fb.width = 0;
-    fb.height = 0;
-    fb.pitch = 0;
-    fb.bpp = 32;
-    console_write("[FB] Framebuffer layer ready\n");
+    fb.ready = 0;
+    console_write("[FB] Waiting for Multiboot2 framebuffer tag...\n");
 }
 
-void fb_clear(uint32_t color) {
-    (void)color;
-    if (!fb.addr) return;
+void fb_set(uint32_t* addr, uint32_t w, uint32_t h, uint32_t pitch, uint32_t bpp) {
+    fb.addr = addr;
+    fb.width = w;
+    fb.height = h;
+    fb.pitch = pitch;
+    fb.bpp = bpp;
+    fb.ready = (addr != 0 && w > 0 && h > 0);
+    if (fb.ready) {
+        console_write("[FB] Linear framebuffer active!\n");
+    }
+}
+
+int fb_is_ready(void) {
+    return fb.ready;
 }
 
 void fb_putpixel(uint32_t x, uint32_t y, uint32_t color) {
-    (void)x; (void)y; (void)color;
-    if (!fb.addr) return;
+    if (!fb.ready || x >= fb.width || y >= fb.height) return;
+    uint8_t* base = (uint8_t*)fb.addr + y * fb.pitch + x * 4;
+    *(uint32_t*)base = color;
 }
 
 void fb_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color) {
-    (void)x; (void)y; (void)w; (void)h; (void)color;
+    if (!fb.ready) return;
+    for (uint32_t dy = 0; dy < h; dy++) {
+        for (uint32_t dx = 0; dx < w; dx++) {
+            fb_putpixel(x + dx, y + dy, color);
+        }
+    }
 }
 
-/* Colorful design-system demo using VGA text attributes */
-void fb_demo_design_colors(void) {
-    console_write("\n");
-    console_write("  JagX Design Colors (text-mode preview)\n");
-    console_write("  -------------------------------------\n");
+void fb_clear(uint32_t color) {
+    if (!fb.ready) return;
+    fb_fill_rect(0, 0, fb.width, fb.height, color);
+}
 
-    /* We use the existing console. A fuller graphical demo comes with real FB. */
-    console_write("  Primary accent : Electric Teal\n");
-    console_write("  Secondary      : Soft Purple\n");
-    console_write("  Background     : Deep Black\n");
-    console_write("  Style          : Premium dark + glass\n\n");
+/* Draw a simple demo matching JagX design colors */
+void fb_draw_demo(void) {
+    if (!fb.ready) {
+        console_write("[FB] No framebuffer - text mode only\n");
+        return;
+    }
+
+    /* Deep black background */
+    fb_clear(0x00000000);
+
+    /* Teal header bar */
+    fb_fill_rect(0, 0, fb.width, 48, 0xFF00D4C8);
+
+    /* Soft purple accent rectangle */
+    fb_fill_rect(80, 120, 400, 200, 0xFF7B5EA7);
+
+    /* Another teal card */
+    fb_fill_rect(520, 120, 300, 200, 0xFF00B7A8);
+
+    console_write("[FB] Demo rectangles drawn (teal + purple)\n");
 }

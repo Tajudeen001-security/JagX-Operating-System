@@ -1,38 +1,23 @@
 # JagX Operating System
 
-**JagX** is an original open-source operating system built from scratch (no Linux, Android, or iOS base).
-
-It targets both **PC** and **Mobile**, with a strong ambition to make the **mobile experience one of the best** in the world.
+Original open-source OS (no Linux / Android / iOS base) for **PC** and **Mobile**.
 
 ## Visual Direction
+Dark theme • Electric teal • Soft purple • Premium & fast-feeling
 
-We are designing a premium dark interface with electric teal and soft purple accents — clean, modern, fast-feeling, and original.
+## Current Status (v0.0.5)
 
-Concept work already includes:
-- Bootscreens (PC + Mobile)
-- Mobile home & lock screen
-- Desktop environment
-- Settings, multitasking, notifications, file manager ideas
-- JagBrowser concepts
-
-## Current Technical Status
-
-| Area                  | Status                                      |
-|-----------------------|---------------------------------------------|
-| x86 Kernel            | Bootable, interrupts, memory, FS, syscalls  |
-| Framebuffer layer     | Early preparation added                     |
-| aarch64 / Mobile      | Skeleton + strong design docs               |
-| Design System         | Documented                                  |
-| Graphical UI          | Concepts ready, implementation starting     |
+| Area                | Status                                      |
+|---------------------|---------------------------------------------|
+| x86 Kernel          | Multiboot2, memory, interrupts, syscalls    |
+| Framebuffer         | Real pixel drawing when FB tag present      |
+| Compositor          | Draws simple colored windows                |
+| aarch64 / Mobile    | Exceptions + early MMU path                 |
+| Networking          | Stub + loopback                             |
+| JagBrowser          | Architecture defined                        |
+| Design System       | Documented                                  |
 
 ## Repository
-
 https://github.com/Tajudeen001-security/JagX-Operating-System
 
-## License
-
-MIT — fully open source.
-
----
-
-**JagX** — Own your computer. Own your phone.
+MIT License

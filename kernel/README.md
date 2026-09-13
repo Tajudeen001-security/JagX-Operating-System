@@ -1,15 +1,13 @@
-# JagX Kernel v0.0.4
+# JagX Kernel v0.0.5
 
-## Highlights
+## New in this version
 
-- Multiboot memory info parsing
-- Improved physical memory sizing
-- Framebuffer preparation + design color demo
-- aarch64 UART stub for mobile path
-- Early compositor structures
-- JagBrowser architecture started
+- Multiboot2 + real framebuffer pixel drawing
+- Compositor can draw simple colored windows
+- aarch64 exception vectors + MMU prep
+- Networking stub (loopback)
 
-## Build & Run
+## Build
 
 ```bash
 cd kernel
@@ -17,4 +15,4 @@ make
 make run
 ```
 
-You should see Multiboot memory information and the design color notes.
+For best graphical results later, boot via GRUB with Multiboot2 support.

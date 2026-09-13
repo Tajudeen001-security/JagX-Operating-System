@@ -1,18 +1,26 @@
-# JagX Progress Log
+# JagX Progress - v0.0.5
 
-## v0.0.4 (Current)
+## Implemented in this version
 
-### Done in this update
-- Multiboot info parsing (magic + basic memory amounts)
-- PMM can use real upper memory size from Multiboot
-- Framebuffer layer + design color demo
-- aarch64 boot stub improved (UART banner on QEMU virt)
-- Very early Compositor structures (window list)
-- JagBrowser architecture document started
-- Design system continues to guide UI direction
+### Graphics (Multiboot2 path)
+- Switched boot header to Multiboot2
+- Request 1024×768×32 framebuffer tag
+- Parse Multiboot2 tags and activate linear framebuffer when present
+- Real `fb_putpixel` / `fb_fill_rect` / `fb_clear`
+- Demo drawing of teal + purple rectangles
 
-### Still early / next
-- Real linear framebuffer under QEMU (Multiboot2 or VBE)
-- Actual pixel rendering of windows
-- Fuller aarch64 kernel (exceptions, MMU)
-- Networking + real browser components
+### Compositor
+- Windows are now rendered as colored rectangles with title bars when FB is active
+
+### aarch64 / Mobile
+- Exception vector table installed
+- Basic exception stubs
+- MMU preparation point reached
+
+### Networking
+- Stub interface + loopback concept added (`net/`)
+
+## Notes
+
+- Under plain `qemu -kernel` the Multiboot2 framebuffer tag may not always be supplied. Using GRUB or a Multiboot2-aware loader gives the best graphical result.
+- Text mode remains the reliable fallback.
