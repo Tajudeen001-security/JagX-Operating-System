@@ -1,15 +1,11 @@
-# JagX v0.0.12
+# JagX v0.0.13
 
-## TCP
-- SYN emit with checksum
-- SYN-ACK handling → ESTABLISHED + ACK
-- Data send (PSH+ACK)
-- Data recv path via virtio RX + tcp_input
-- FIN/ACK close path
+## Networking
+- **ARP** table, request, reply learning; IPv4 uses ARP before send
+- **DHCP** DISCOVER + offer parsing / QEMU default lease fallback
+- **TLS** foundation: ClientHello builder + send over TCP (full handshake still open)
 
-## HTTP
-- `http_get`: DNS → TCP connect → wait ESTABLISHED → GET → read response bytes
-
-## Docs
-- Full README: install, ISO, QEMU, networking, secure boot, mobile, company guide
-- SETUP_PC.md / SETUP_MOBILE.md
+## Toward HTTPS
+1. ~~ARP/DHCP~~
+2. TLS ServerHello + key schedule + cert verify
+3. Application data records for HTTPS GET
