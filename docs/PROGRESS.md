@@ -1,32 +1,24 @@
-# JagX v0.0.7
+# JagX v0.0.8
 
-## Real implementations added
+## Web / JagBrowser
 
-### Input & Windowing
-- Live mouse cursor redraw on every packet
-- Window dragging by title bar (left button)
-- Proper focus + chrome (shadow, title, close, focus line)
+- Architecture for URL navigation + web search documented honestly
+- `jagx_navigate_or_search()` API added
+- Local answer for “founder of JagX” → Gbadamosi Tajudeen Olajide + project link
+- Live youtube.com / Google-scale search **requires** unfinished networking (TCP/TLS/HTTP) — not claimed as working yet
 
-### Networking
-- Virtio-net: real PCI BAR discovery, status machine (ACK → DRIVER → FEATURES_OK → DRIVER_OK)
-- Transmit entry point ready for ring completion
+## Security & system
 
-### aarch64
-- MMU + I/D caches enabled
-- Two 1GB identity blocks
-- Generic timer (CNTP) enabled
-- GIC distributor minimal bring-up
+- ENCRYPTION.md — algorithms and policy direction
+- SECURE_BOOT.md — verification chain notes
+- MOBILE_SECURITY.md — phone-specific rules
+- Userspace directory + init stub
+- Founder attribution file (FOUNDER.md)
 
-### Security
-- Dedicated SECURITY.md with capability-oriented roadmap
-- Principles locked in for all future work
+## Still required for real web browsing
 
-## Boot
-
-Use the ISO path for reliable Multiboot2 framebuffer:
-
-```bash
-cd kernel && make && make iso
-qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio \
-  -netdev user,id=net0 -device virtio-net-pci,netdev=net0
-```
+1. Complete virtio-net RX/TX rings
+2. DNS + TCP
+3. TLS 1.3
+4. HTTP client
+5. HTML renderer into compositor

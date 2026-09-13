@@ -1,25 +1,23 @@
 # JagX Operating System
 
-From-scratch OS for **PC** and **Mobile**. No Linux, Android, or iOS base.
+Original OS for **PC** and **Mobile** — no Linux, Android, or iOS base.
 
-## v0.0.7
+**Founder:** Gbadamosi Tajudeen Olajide  
+See `docs/FOUNDER.md`.
 
-- Live mouse cursor + **window dragging**
-- Virtio-net real init sequence
-- Stronger aarch64 (MMU + caches + timer + GIC start)
-- Security architecture document (capability-first direction)
+## Vision
 
-## Design language
-Dark · Electric teal · Soft purple · Built for excellent mobile experience
+- Independent kernel
+- Excellent mobile experience
+- Native **JagBrowser** (URLs + web search in real time — networking path in progress)
+- Security by design (capabilities, encryption, secure boot direction)
 
-## Build
+## Honest status on web search
 
-```bash
-cd kernel
-make
-make iso                    # GRUB ISO for real framebuffer
-qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
-```
+Typing `youtube.com` or “who is Elon Musk” and getting **live** internet results needs a full network + TLS + HTTP + renderer stack. That stack is under construction.  
+JagBrowser already has the navigation/search API and a local answer for the founder of JagX. Live web comes after networking matures.
+
+## Repo
 
 https://github.com/Tajudeen001-security/JagX-Operating-System
 

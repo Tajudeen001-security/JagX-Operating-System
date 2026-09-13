@@ -1,7 +1,8 @@
 # JagBrowser
 
-Native web browser for the JagX operating system.
+Native browser + search for JagX.
 
-See `ARCHITECTURE.md` for the early design.
+**Target:** type a URL or a question → real-time result from the network.  
+**Today:** architecture + classifier + local founder answer; live fetch waits on TCP/TLS/HTTP.
 
-This will be built specifically for JagX (PC + Mobile) rather than ported from another engine.
+See `ARCHITECTURE.md` and `search.c`.
