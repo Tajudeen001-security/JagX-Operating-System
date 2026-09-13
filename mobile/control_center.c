@@ -2,6 +2,9 @@
 #include "hal/wifi.h"
 #include "hal/radio.h"
 #include "hal/lights.h"
+#include "screencast.h"
+#include "screenshot.h"
+#include "features.h"
 #include "../kernel/arch/x86_64/console.h"
 
 static struct jagx_cc_state cc;
@@ -30,10 +33,7 @@ void control_center_toggle_data(void) {
 void control_center_toggle_airplane(void) {
     cc.airplane = !cc.airplane;
     jagx_airplane_set(cc.airplane);
-    if (cc.airplane) {
-        cc.mobile_data = 0;
-        cc.wifi = 0;
-    }
+    if (cc.airplane) { cc.mobile_data = 0; cc.wifi = 0; }
 }
 
 void control_center_toggle_torch(void) {
@@ -43,4 +43,13 @@ void control_center_toggle_torch(void) {
 
 struct jagx_cc_state control_center_get(void) {
     return cc;
+}
+
+void control_center_screenshot(void) {
+    screenshot_take();
+}
+
+void control_center_toggle_record(void) {
+    if (screencast_is_recording()) screencast_stop();
+    else screencast_start();
 }

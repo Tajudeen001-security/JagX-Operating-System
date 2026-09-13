@@ -1,6 +1,8 @@
 #include "compositor.h"
 #include "../kernel/arch/x86_64/framebuffer.h"
 #include "../mobile/control_center.h"
+#include "../mobile/screenshot.h"
+#include "../mobile/screencast.h"
 
 static void jagx_strncpy(char* dst, const char* src, int n) {
     int i = 0;
@@ -54,21 +56,23 @@ void compositor_destroy_window(struct compositor* c, int id) {
 
 void compositor_draw_control_center(struct compositor* c) {
     if (!fb_is_ready() || !c->show_control_center) return;
-    int panel_x = 40, panel_y = 40, panel_w = 280, panel_h = 320;
+    int panel_x = 40, panel_y = 40, panel_w = 300, panel_h = 380;
     fb_fill_rect(panel_x + 4, panel_y + 4, panel_w, panel_h, 0xFF000000);
     fb_fill_rect(panel_x, panel_y, panel_w, panel_h, 0xEE12121A);
     fb_fill_rect(panel_x, panel_y, panel_w, 36, 0xFF00D4C8);
 
     struct jagx_cc_state st = control_center_get();
-    /* Tile grid: WiFi, Data, Airplane, Torch */
-    int tx = panel_x + 16, ty = panel_y + 52, tw = 110, th = 64;
+    int tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 56;
     uint32_t on = 0xFF00D4C8, off = 0xFF2A2A35;
     fb_fill_rect(tx, ty, tw, th, st.wifi ? on : off);
     fb_fill_rect(tx + tw + 16, ty, tw, th, st.mobile_data ? on : off);
-    fb_fill_rect(tx, ty + th + 16, tw, th, st.airplane ? on : off);
-    fb_fill_rect(tx + tw + 16, ty + th + 16, tw, th, st.torch ? on : off);
-    /* Decorative second row */
-    fb_fill_rect(tx, ty + 2 * (th + 16), panel_w - 32, 40, 0xFF7B5EA7);
+    fb_fill_rect(tx, ty + th + 12, tw, th, st.airplane ? on : off);
+    fb_fill_rect(tx + tw + 16, ty + th + 12, tw, th, st.torch ? on : off);
+    /* Screenshot + Record tiles */
+    fb_fill_rect(tx, ty + 2 * (th + 12), tw, th, 0xFF7B5EA7);
+    fb_fill_rect(tx + tw + 16, ty + 2 * (th + 12), tw, th,
+                 screencast_is_recording() ? 0xFFE74C3C : 0xFF2A2A35);
+    fb_fill_rect(tx, ty + 3 * (th + 12), panel_w - 32, 36, 0xFF1E2A3A);
 }
 
 void compositor_toggle_control_center(struct compositor* c) {
@@ -77,6 +81,7 @@ void compositor_toggle_control_center(struct compositor* c) {
 
 void compositor_render(struct compositor* c) {
     if (!fb_is_ready()) return;
+    if (screencast_is_recording()) screencast_tick();
     fb_clear(0xFF0A0A12);
     for (int i = 0; i < MAX_WINDOWS; i++) {
         if (!c->windows[i].visible || c->windows[i].id == -1) continue;
@@ -89,6 +94,9 @@ void compositor_render(struct compositor* c) {
             fb_fill_rect(w->x, w->y + 32, w->width, 3, 0xFF7B5EA7);
     }
     compositor_draw_control_center(c);
+    /* REC indicator */
+    if (screencast_is_recording())
+        fb_fill_rect(16, 16, 18, 18, 0xFFE74C3C);
     compositor_draw_cursor(c->last_cursor_x, c->last_cursor_y);
 }
 
@@ -101,6 +109,10 @@ void compositor_draw_cursor(int x, int y) {
 void compositor_handle_mouse(struct compositor* c, int x, int y, uint8_t buttons) {
     if (!fb_is_ready()) return;
     int left_down = buttons & 1;
+
+    if (left_down)
+        screenshot_on_tap(x, y); /* triple-tap → screenshot */
+
     if (left_down && c->focused_id >= 0) {
         struct jagx_window* w = &c->windows[c->focused_id];
         if (x >= w->x && x < w->x + w->width && y >= w->y && y < w->y + 32) {
@@ -110,18 +122,22 @@ void compositor_handle_mouse(struct compositor* c, int x, int y, uint8_t buttons
                 c->drag_offset_y = y - w->y;
             }
         }
-        /* Tap Control Center tiles region when open */
         if (c->show_control_center) {
             int panel_x = 40, panel_y = 40;
-            int tx = panel_x + 16, ty = panel_y + 52, tw = 110, th = 64;
+            int tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 56;
             if (x >= tx && x < tx + tw && y >= ty && y < ty + th)
                 control_center_toggle_wifi();
             else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty && y < ty + th)
                 control_center_toggle_data();
-            else if (x >= tx && x < tx + tw && y >= ty + th + 16 && y < ty + 2 * th + 16)
+            else if (x >= tx && x < tx + tw && y >= ty + th + 12 && y < ty + 2 * th + 12)
                 control_center_toggle_airplane();
-            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + th + 16 && y < ty + 2 * th + 16)
+            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + th + 12 && y < ty + 2 * th + 12)
                 control_center_toggle_torch();
+            else if (x >= tx && x < tx + tw && y >= ty + 2 * (th + 12) && y < ty + 3 * th + 24)
+                control_center_screenshot();
+            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 &&
+                     y >= ty + 2 * (th + 12) && y < ty + 3 * th + 24)
+                control_center_toggle_record();
         }
     }
     if (c->focused_id >= 0 && c->windows[c->focused_id].dragging) {

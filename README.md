@@ -4,13 +4,22 @@
 **License:** MIT  
 https://github.com/Tajudeen001-security/JagX-Operating-System
 
-From-scratch OS for **PC** and **Mobile** (not Linux/Android/iOS).
+Original OS for PC + Mobile (not Linux/Android/iOS).
+
+## Gallery, screenshots & screen record
+
+- **Gallery** — see photos, screenshots, and recordings
+- **Screenshot** — Control Center button, or **triple-tap** the screen
+- **Screen record** — start/stop from Control Center; saved into Gallery
+- Camera captures also go to Gallery when the camera HAL is connected
+
+Details: [docs/FEATURES.md](docs/FEATURES.md)
 
 ## Replace Android on Tecno / Itel?
 
-See [docs/REPLACE_ANDROID.md](docs/REPLACE_ANDROID.md) — full device port required for camera, SMS, SIM, Control Center.
+[docs/REPLACE_ANDROID.md](docs/REPLACE_ANDROID.md)
 
-## Quick start (PC)
+## Quick start
 
 ```bash
 git clone https://github.com/Tajudeen001-security/JagX-Operating-System.git
@@ -19,13 +28,6 @@ qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio \
   -netdev user,id=net0 -device virtio-net-pci,netdev=net0
 ```
 
-## v0.0.16 highlights
+## v0.0.17
 
-- TLS PRF / key_block scaffold (HMAC-SHA256)
-- **Control Center UI** tiles (Wi‑Fi, mobile data, airplane, torch)
-- **Settings** skeleton (Network, Display, Sound, Security, About)
-- Mobile HALs for future Tecno/Itel-class ports
-
-## Mobile QEMU
-
-[docs/SETUP_MOBILE.md](docs/SETUP_MOBILE.md)
+Gallery · Screenshot · Triple-tap · Screen record · DND · Battery saver · Clipboard
