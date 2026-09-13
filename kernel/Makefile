@@ -19,6 +19,7 @@ OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o 
   ../userland/process.o ../crypto/sha256.o ../crypto/aead.o ../crypto/chacha20poly1305.o \
   ../mobile/control_center.o ../mobile/settings.o ../mobile/gallery.o \
   ../mobile/screenshot.o ../mobile/screencast.o ../mobile/features.o \
+  ../mobile/notifications.o ../mobile/filemanager.o \
   ../mobile/hal/camera.o ../mobile/hal/lights.o ../mobile/hal/radio.o ../mobile/hal/wifi.o
 .PHONY: all clean run iso
 all: jagx.kernel

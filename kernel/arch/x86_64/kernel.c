@@ -1,4 +1,4 @@
-/* JagX v0.0.17 */
+/* JagX v0.0.18 */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -20,9 +20,9 @@
 #include "../../../mobile/settings.h"
 #include "../../../mobile/gallery.h"
 #include "../../../mobile/screenshot.h"
-#include "../../../mobile/screencast.h"
+#include "../../../mobile/notifications.h"
+#include "../../../mobile/filemanager.h"
 #include "../../../mobile/features.h"
-#include "../../../mobile/hal/camera.h"
 
 extern int boot_verify_marker(void);
 struct compositor g_compositor;
@@ -36,7 +36,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.17\n===============\n\n");
+    console_write("JagX OS v0.0.18\n===============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -46,16 +46,22 @@ void kernel_main(uint32_t magic, void* mb_info) {
     timer_init(100); keyboard_init(); mouse_init();
     net_init();
 
+    ramfs_init();
     gallery_init();
+    notifications_init();
+    filemanager_init();
     features_init();
     control_center_init();
     settings_init();
-    screenshot_set_triple_tap_enabled(1);
 
-    /* Demo: camera photo entry + screenshot into gallery */
+    notifications_push("Welcome", "JagX is running");
+    notifications_push("Gallery", "Screenshots save here");
+
+    screenshot_set_triple_tap_enabled(1);
     gallery_add(JAGX_MEDIA_PHOTO, "camera-demo.jpg", 1280, 720, 200000);
     screenshot_take();
     gallery_list_console();
+    filemanager_list_root();
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -63,14 +69,16 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 60, 50, 360, 240, "Gallery");
-    compositor_create_window(&g_compositor, 300, 120, 360, 240, "Settings");
+    compositor_create_window(&g_compositor, 40, 40, 320, 220, "Gallery");
+    compositor_create_window(&g_compositor, 280, 80, 320, 220, "Files");
+    compositor_create_window(&g_compositor, 160, 200, 320, 200, "Settings");
     compositor_toggle_control_center(&g_compositor);
+    compositor_toggle_notification_shade(&g_compositor);
     compositor_render(&g_compositor);
 
-    ramfs_init(); syscall_init();
+    syscall_init();
     __asm__ volatile ("sti");
-    console_write("Gallery + Screenshot (triple-tap) + Screen record ready\n");
+    console_write("Notif shade + Files + FB screenshot dump live\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }
