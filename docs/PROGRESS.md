@@ -1,11 +1,10 @@
-# JagX v0.0.15
+# JagX v0.0.16
 
 ## TLS
-- Record parser for Handshake / CCS / Alert / AppData
-- ServerHello field extract (random, cipher suite)
-- Certificate + ServerHelloDone recognition
-- Still missing: key exchange, cert verify, traffic secrets
+- HMAC-SHA256 + TLS-style PRF
+- key_block expansion from master + randoms (master still placeholder until real KX)
 
-## Mobile HALs
-- camera, lights (torch), radio (data/SMS/airplane), wifi
-- Control Center toggles wired to HALs
+## UI
+- Control Center panel drawn on framebuffer (Wi‑Fi / Data / Airplane / Torch tiles)
+- Mouse can toggle tiles when panel open
+- Settings app skeleton: Network, Display, Sound, Security, About

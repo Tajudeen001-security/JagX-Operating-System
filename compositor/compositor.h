@@ -24,6 +24,7 @@ struct compositor {
     int last_cursor_y;
     int drag_offset_x;
     int drag_offset_y;
+    int show_control_center;
 };
 
 void compositor_init(struct compositor* c);
@@ -33,5 +34,7 @@ void compositor_destroy_window(struct compositor* c, int id);
 void compositor_render(struct compositor* c);
 void compositor_draw_cursor(int x, int y);
 void compositor_handle_mouse(struct compositor* c, int x, int y, uint8_t buttons);
+void compositor_toggle_control_center(struct compositor* c);
+void compositor_draw_control_center(struct compositor* c);
 
 #endif

@@ -1,4 +1,4 @@
-/* JagX v0.0.15 */
+/* JagX v0.0.16 */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -19,6 +19,7 @@
 #include "../../../userland/process.h"
 #include "../../../crypto/aead.h"
 #include "../../../mobile/control_center.h"
+#include "../../../mobile/settings.h"
 #include "../../../mobile/hal/camera.h"
 
 extern int boot_verify_marker(void);
@@ -33,7 +34,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.15\n===============\n\n");
+    console_write("JagX OS v0.0.16\n===============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -44,33 +45,23 @@ void kernel_main(uint32_t magic, void* mb_info) {
     net_init();
 
     control_center_init();
-    control_center_toggle_wifi();
-    control_center_toggle_torch();
-    control_center_toggle_torch(); /* off again */
-    jagx_camera_open(JAGX_CAM_BACK);
+    settings_init();
+    settings_draw();
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
     process_create("userdemo", (uint32_t)user_program, ustack);
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
-    uint8_t key[32], nonce[12], pt[16], ct[16], tag[16], out[16];
-    for (int i = 0; i < 32; i++) key[i] = (uint8_t)i;
-    for (int i = 0; i < 12; i++) nonce[i] = (uint8_t)(i+1);
-    for (int i = 0; i < 16; i++) pt[i] = (uint8_t)('A'+i);
-    aead_encrypt(key,32,nonce,12,0,0,pt,16,ct,tag,16);
-    aead_decrypt(key,32,nonce,12,0,0,ct,16,tag,16,out);
-
-    uint8_t http_buf[256]; uint32_t got = 0;
-    http_get("example.com", "/", http_buf, sizeof(http_buf), &got);
-
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 60, 50, 400, 260, "JagX");
+    compositor_create_window(&g_compositor, 80, 60, 380, 240, "Settings");
+    compositor_create_window(&g_compositor, 320, 140, 340, 220, "JagX Shell");
+    compositor_toggle_control_center(&g_compositor);
     compositor_render(&g_compositor);
+
     ramfs_init(); syscall_init();
     __asm__ volatile ("sti");
-
-    console_write("HALs + Control Center stubs active\n");
+    console_write("Control Center UI + Settings skeleton live\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }

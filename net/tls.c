@@ -1,10 +1,13 @@
 #include "tls.h"
+#include "tls_crypto.h"
 #include "tcp.h"
 #include "virtio_net.h"
 #include "../kernel/arch/x86_64/console.h"
 
+static uint8_t client_random_stored[32];
+
 void tls_init(void) {
-    console_write("[TLS] Record parser + handshake state machine\n");
+    console_write("[TLS] PRF + handshake state\n");
 }
 
 static uint32_t build_client_hello(uint8_t* out, uint32_t max, const char* sni) {
@@ -16,7 +19,10 @@ static uint32_t build_client_hello(uint8_t* out, uint32_t max, const char* sni) 
     out[p++] = 1;
     uint32_t hs_len_at = p; p += 3;
     out[p++] = 0x03; out[p++] = 0x03;
-    for (int i = 0; i < 32; i++) out[p++] = (uint8_t)(0xA0 + i);
+    for (int i = 0; i < 32; i++) {
+        out[p++] = (uint8_t)(0xA0 + i);
+        client_random_stored[i] = (uint8_t)(0xA0 + i);
+    }
     out[p++] = 0;
     out[p++] = 0x00; out[p++] = 0x04;
     out[p++] = 0x00; out[p++] = 0x2F;
@@ -58,10 +64,9 @@ int tls_process_records(struct tls_conn* c, const uint8_t* data, uint32_t len) {
         uint16_t rlen = ((uint16_t)data[off+3] << 8) | data[off+4];
         if (off + 5 + rlen > len) break;
         const uint8_t* body = data + off + 5;
-
-        if (ctype == 22 && rlen >= 4) { /* Handshake */
+        if (ctype == 22 && rlen >= 4) {
             uint8_t htype = body[0];
-            if (htype == 2) { /* ServerHello */
+            if (htype == 2) {
                 c->got_server_hello = 1;
                 c->state = TLS_SERVER_HELLO_RCVD;
                 if (rlen >= 38) {
@@ -71,20 +76,19 @@ int tls_process_records(struct tls_conn* c, const uint8_t* data, uint32_t len) {
                     if (cs_at + 1 < rlen)
                         c->cipher_suite = ((uint16_t)body[cs_at] << 8) | body[cs_at+1];
                 }
-                console_write("[TLS] ServerHello parsed\n");
-            } else if (htype == 11) { /* Certificate */
+                /* Demo key_block once we have both randoms (master still placeholder) */
+                uint8_t master[48];
+                for (int i = 0; i < 48; i++) master[i] = (uint8_t)i;
+                uint8_t kb[128];
+                tls_key_block(master, client_random_stored, c->server_random, kb, 128);
+                console_write("[TLS] ServerHello + key_block expanded (master placeholder)\n");
+            } else if (htype == 11) {
                 c->got_certificate = 1;
-                console_write("[TLS] Certificate message seen (verify TBD)\n");
+                console_write("[TLS] Certificate seen\n");
             } else if (htype == 14) {
                 console_write("[TLS] ServerHelloDone\n");
                 c->state = TLS_HANDSHAKING;
             }
-        } else if (ctype == 20) {
-            console_write("[TLS] ChangeCipherSpec\n");
-        } else if (ctype == 21) {
-            console_write("[TLS] Alert\n");
-        } else if (ctype == 23) {
-            console_write("[TLS] Application data (needs keys)\n");
         }
         off += 5 + rlen;
     }
@@ -93,16 +97,14 @@ int tls_process_records(struct tls_conn* c, const uint8_t* data, uint32_t len) {
 
 int tls_client_hello(struct tls_conn* c, uint32_t ip, uint16_t port, const char* sni_host) {
     if (!c) return -1;
-    c->remote_ip = ip;
-    c->remote_port = port;
     c->state = TLS_CLIENT_HELLO_SENT;
     c->got_server_hello = 0;
     c->got_certificate = 0;
-    c->cipher_suite = 0;
+    c->remote_ip = ip;
+    c->remote_port = port;
 
     struct tcp_pcb pcb;
     if (tcp_connect(&pcb, ip, port) != 0) return -1;
-
     uint8_t frame[1600];
     for (int i = 0; i < 40; i++) {
         uint32_t n = virtio_net_receive(frame, sizeof(frame));
@@ -131,5 +133,5 @@ int tls_client_hello(struct tls_conn* c, uint32_t ip, uint16_t port, const char*
 int tls_send_appdata(struct tls_conn* c, const uint8_t* data, uint32_t len) {
     if (!c || c->state != TLS_APP_DATA) return -1;
     (void)data; (void)len;
-    return -1; /* needs traffic keys */
+    return -1;
 }

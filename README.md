@@ -2,19 +2,15 @@
 
 **Founder:** Gbadamosi Tajudeen Olajide  
 **License:** MIT  
-**Repo:** https://github.com/Tajudeen001-security/JagX-Operating-System
+https://github.com/Tajudeen001-security/JagX-Operating-System
 
-Original OS for PC + Mobile — **not** Linux/Android/iOS based.
+From-scratch OS for **PC** and **Mobile** (not Linux/Android/iOS).
 
-## Replace Android on Tecno / Itel / etc.?
+## Replace Android on Tecno / Itel?
 
-Not a one-click ROM. Camera, SMS, SIM data, Control Center, flashlight need a **device port**.
+See [docs/REPLACE_ANDROID.md](docs/REPLACE_ANDROID.md) — full device port required for camera, SMS, SIM, Control Center.
 
-**Guide:** [docs/REPLACE_ANDROID.md](docs/REPLACE_ANDROID.md)
-
-**HAL stubs now in tree** (`mobile/hal/`): camera · lights/torch · radio/SMS/data · Wi‑Fi · Control Center toggles. Real phones register drivers into these interfaces.
-
-## PC quick start
+## Quick start (PC)
 
 ```bash
 git clone https://github.com/Tajudeen001-security/JagX-Operating-System.git
@@ -23,10 +19,13 @@ qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio \
   -netdev user,id=net0 -device virtio-net-pci,netdev=net0
 ```
 
-## Mobile QEMU (aarch64)
+## v0.0.16 highlights
 
-See [docs/SETUP_MOBILE.md](docs/SETUP_MOBILE.md).
+- TLS PRF / key_block scaffold (HMAC-SHA256)
+- **Control Center UI** tiles (Wi‑Fi, mobile data, airplane, torch)
+- **Settings** skeleton (Network, Display, Sound, Security, About)
+- Mobile HALs for future Tecno/Itel-class ports
 
-## v0.0.15
+## Mobile QEMU
 
-TLS record/handshake parsing · Mobile Control Center + HALs
+[docs/SETUP_MOBILE.md](docs/SETUP_MOBILE.md)
