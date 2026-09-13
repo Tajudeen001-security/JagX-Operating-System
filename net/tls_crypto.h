@@ -4,7 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-/* TLS 1.2 PRF (SHA-256 based) scaffold for key expansion */
 void tls_prf_sha256(const uint8_t* secret, size_t secret_len,
                     const char* label,
                     const uint8_t* seed, size_t seed_len,
@@ -14,5 +13,11 @@ void tls_key_block(const uint8_t master[48],
                    const uint8_t client_random[32],
                    const uint8_t server_random[32],
                    uint8_t* key_block, size_t key_block_len);
+
+/* TLS 1.2 master secret from pre-master secret */
+void tls_master_secret(const uint8_t* pms, size_t pms_len,
+                       const uint8_t client_random[32],
+                       const uint8_t server_random[32],
+                       uint8_t master[48]);
 
 #endif

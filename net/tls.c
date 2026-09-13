@@ -4,13 +4,11 @@
 #include "virtio_net.h"
 #include "../kernel/arch/x86_64/console.h"
 
-static uint8_t client_random_stored[32];
-
 void tls_init(void) {
-    console_write("[TLS] PRF + handshake state\n");
+    console_write("[TLS] Master secret derivation ready\n");
 }
 
-static uint32_t build_client_hello(uint8_t* out, uint32_t max, const char* sni) {
+static uint32_t build_client_hello(struct tls_conn* c, uint8_t* out, uint32_t max, const char* sni) {
     if (max < 120) return 0;
     uint32_t p = 0;
     out[p++] = 22; out[p++] = 0x03; out[p++] = 0x01;
@@ -20,8 +18,9 @@ static uint32_t build_client_hello(uint8_t* out, uint32_t max, const char* sni) 
     uint32_t hs_len_at = p; p += 3;
     out[p++] = 0x03; out[p++] = 0x03;
     for (int i = 0; i < 32; i++) {
-        out[p++] = (uint8_t)(0xA0 + i);
-        client_random_stored[i] = (uint8_t)(0xA0 + i);
+        uint8_t b = (uint8_t)(0xA0 + i);
+        out[p++] = b;
+        c->client_random[i] = b;
     }
     out[p++] = 0;
     out[p++] = 0x00; out[p++] = 0x04;
@@ -56,6 +55,15 @@ static uint32_t build_client_hello(uint8_t* out, uint32_t max, const char* sni) 
     return p;
 }
 
+int tls_derive_master_from_pms(struct tls_conn* c, const uint8_t* pms, uint32_t pms_len) {
+    if (!c || !pms || pms_len == 0) return -1;
+    tls_master_secret(pms, pms_len, c->client_random, c->server_random, c->master_secret);
+    tls_key_block(c->master_secret, c->client_random, c->server_random, c->key_block, 128);
+    c->has_master = 1;
+    console_write("[TLS] Master secret + key_block derived from PMS\n");
+    return 0;
+}
+
 int tls_process_records(struct tls_conn* c, const uint8_t* data, uint32_t len) {
     if (!c || !data || len < 5) return -1;
     uint32_t off = 0;
@@ -76,18 +84,19 @@ int tls_process_records(struct tls_conn* c, const uint8_t* data, uint32_t len) {
                     if (cs_at + 1 < rlen)
                         c->cipher_suite = ((uint16_t)body[cs_at] << 8) | body[cs_at+1];
                 }
-                /* Demo key_block once we have both randoms (master still placeholder) */
-                uint8_t master[48];
-                for (int i = 0; i < 48; i++) master[i] = (uint8_t)i;
-                uint8_t kb[128];
-                tls_key_block(master, client_random_stored, c->server_random, kb, 128);
-                console_write("[TLS] ServerHello + key_block expanded (master placeholder)\n");
+                /* Until real RSA/ECDHE PMS exists, derive using deterministic demo PMS
+                 * so the PRF path is exercised end-to-end. Replace with real KX. */
+                uint8_t demo_pms[48];
+                for (int i = 0; i < 48; i++)
+                    demo_pms[i] = (uint8_t)(c->client_random[i % 32] ^ c->server_random[i % 32] ^ (uint8_t)i);
+                tls_derive_master_from_pms(c, demo_pms, 48);
+                console_write("[TLS] ServerHello OK (demo PMS → master)\n");
             } else if (htype == 11) {
                 c->got_certificate = 1;
-                console_write("[TLS] Certificate seen\n");
+                console_write("[TLS] Certificate\n");
             } else if (htype == 14) {
-                console_write("[TLS] ServerHelloDone\n");
                 c->state = TLS_HANDSHAKING;
+                console_write("[TLS] ServerHelloDone\n");
             }
         }
         off += 5 + rlen;
@@ -100,6 +109,7 @@ int tls_client_hello(struct tls_conn* c, uint32_t ip, uint16_t port, const char*
     c->state = TLS_CLIENT_HELLO_SENT;
     c->got_server_hello = 0;
     c->got_certificate = 0;
+    c->has_master = 0;
     c->remote_ip = ip;
     c->remote_port = port;
 
@@ -115,7 +125,7 @@ int tls_client_hello(struct tls_conn* c, uint32_t ip, uint16_t port, const char*
     if (pcb.state != TCP_ESTABLISHED) return -2;
 
     uint8_t hello[512];
-    uint32_t hlen = build_client_hello(hello, sizeof(hello), sni_host);
+    uint32_t hlen = build_client_hello(c, hello, sizeof(hello), sni_host);
     if (!hlen || tcp_send(&pcb, hello, hlen) != 0) return -3;
     console_write("[TLS] ClientHello sent\n");
 
@@ -123,15 +133,15 @@ int tls_client_hello(struct tls_conn* c, uint32_t ip, uint16_t port, const char*
         int r = tcp_recv(&pcb, frame, sizeof(frame));
         if (r > 0) {
             tls_process_records(c, frame, (uint32_t)r);
-            if (c->got_server_hello) return 0;
+            if (c->got_server_hello && c->has_master) return 0;
         }
         for (volatile int d = 0; d < 80000; d++);
     }
-    return c->got_server_hello ? 0 : -5;
+    return c->has_master ? 0 : -5;
 }
 
 int tls_send_appdata(struct tls_conn* c, const uint8_t* data, uint32_t len) {
-    if (!c || c->state != TLS_APP_DATA) return -1;
+    if (!c || !c->has_master || c->state != TLS_APP_DATA) return -1;
     (void)data; (void)len;
     return -1;
 }

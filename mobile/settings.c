@@ -1,18 +1,15 @@
 #include "settings.h"
-#include "../compositor/compositor.h"
 #include "../kernel/arch/x86_64/framebuffer.h"
 #include "../kernel/arch/x86_64/console.h"
 
-extern struct compositor g_compositor;
-
 static const struct settings_item network_items[] = {
-    {"Wi-Fi", "Turn wireless on or off"},
-    {"Mobile data", "Cellular data toggle"},
+    {"Wi-Fi", "Wireless networks"},
+    {"Mobile data", "Cellular toggle"},
     {"Airplane mode", "Disable radios"},
-    {"SIM & network", "Signal and carrier (needs modem HAL)"},
+    {"SIM & network", "Needs modem HAL"},
 };
 static const struct settings_item display_items[] = {
-    {"Brightness", "Screen brightness"},
+    {"Brightness", "Screen level"},
     {"Wallpaper", "Home background"},
     {"Dark theme", "JagX default"},
 };
@@ -21,18 +18,18 @@ static const struct settings_item sound_items[] = {
     {"Ringtone", "Incoming calls"},
 };
 static const struct settings_item security_items[] = {
-    {"Lock screen", "PIN / future biometrics"},
-    {"Permissions", "Capability manager"},
-    {"Encryption", "Device encryption policy"},
+    {"Lock screen", "Swipe unlock"},
+    {"Permissions", "Capabilities"},
+    {"Encryption", "Device policy"},
 };
 static const struct settings_item about_items[] = {
-    {"JagX OS", "v0.0.16"},
+    {"JagX OS", "v0.0.19"},
     {"Founder", "Gbadamosi Tajudeen Olajide"},
-    {"Build", "From-scratch PC + Mobile"},
+    {"Build", "PC + Mobile"},
 };
 
 void settings_init(void) {
-    console_write("[SETTINGS] App skeleton ready\n");
+    console_write("[SETTINGS] UI ready\n");
 }
 
 const char* settings_category_name(enum settings_category c) {
@@ -71,8 +68,23 @@ const struct settings_item* settings_item_at(enum settings_category c, int index
 
 void settings_draw(void) {
     if (!fb_is_ready()) {
-        console_write("[SETTINGS] Network / Display / Sound / Security / About\n");
+        console_write("[SETTINGS] categories listed on console\n");
         return;
     }
-    /* Settings content drawn as a dedicated window by caller */
+    /* Richer settings panel */
+    int x = 120, y = 60, w = 480, h = 400;
+    fb_fill_rect(x + 6, y + 6, (uint32_t)w, (uint32_t)h, 0xFF000000);
+    fb_fill_rect((uint32_t)x, (uint32_t)y, (uint32_t)w, (uint32_t)h, 0xFF14141E);
+    fb_fill_rect((uint32_t)x, (uint32_t)y, (uint32_t)w, 40, 0xFF00D4C8);
+    /* sidebar categories */
+    for (int i = 0; i < SETTINGS_COUNT; i++) {
+        uint32_t col = (i == 0) ? 0xFF7B5EA7 : 0xFF1E2A3A;
+        fb_fill_rect((uint32_t)(x + 8), (uint32_t)(y + 52 + i * 48), 120, 40, col);
+    }
+    /* content rows */
+    for (int i = 0; i < 4; i++) {
+        fb_fill_rect((uint32_t)(x + 140), (uint32_t)(y + 52 + i * 52), 320, 44, 0xFF1E2A3A);
+        fb_fill_rect((uint32_t)(x + 150), (uint32_t)(y + 60 + i * 52), 200, 12, 0xFF2A3A4A);
+        fb_fill_rect((uint32_t)(x + 150), (uint32_t)(y + 78 + i * 52), 140, 8, 0xFF2A2A35);
+    }
 }

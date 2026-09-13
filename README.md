@@ -1,23 +1,20 @@
-# JagX Operating System
+# JagX OS v0.0.19
 
 **Founder:** Gbadamosi Tajudeen Olajide  
 https://github.com/Tajudeen001-security/JagX-Operating-System
 
-## v0.0.18
+## New
+- TLS master secret derivation (PRF from pre-master)
+- Richer Settings UI
+- BMP screenshots to RamFS + Gallery
+- Status bar (clock / battery)
+- Lock screen (swipe up to unlock)
+- Notification shade · Control Center · Gallery · Files
 
-- Gallery · Screenshots (triple-tap) · Screen record
-- Screenshots stored in **RamFS** + Gallery
-- **Notification shade**
-- **File manager** (RamFS)
-- Control Center (Wi‑Fi, data, airplane, torch, shot, record)
-
-## Quick start
-
+## Run
 ```bash
-git clone https://github.com/Tajudeen001-security/JagX-Operating-System.git
-cd JagX-Operating-System/kernel && make && make iso
-qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio \
-  -netdev user,id=net0 -device virtio-net-pci,netdev=net0
+cd kernel && make && make iso
+qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
 ```
 
-Android phone ports: [docs/REPLACE_ANDROID.md](docs/REPLACE_ANDROID.md)
+Phone ports: docs/REPLACE_ANDROID.md

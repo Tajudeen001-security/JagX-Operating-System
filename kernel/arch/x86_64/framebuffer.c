@@ -1,11 +1,15 @@
 #include "framebuffer.h"
 #include "console.h"
 
-static struct framebuffer fb = {0};
+static struct framebuffer fb;
 
 void fb_init(void) {
+    fb.addr = 0;
+    fb.width = 0;
+    fb.height = 0;
+    fb.pitch = 0;
+    fb.bpp = 0;
     fb.ready = 0;
-    console_write("[FB] Waiting for Multiboot2 framebuffer tag...\n");
 }
 
 void fb_set(uint32_t* addr, uint32_t w, uint32_t h, uint32_t pitch, uint32_t bpp) {
@@ -14,29 +18,27 @@ void fb_set(uint32_t* addr, uint32_t w, uint32_t h, uint32_t pitch, uint32_t bpp
     fb.height = h;
     fb.pitch = pitch;
     fb.bpp = bpp;
-    fb.ready = (addr != 0 && w > 0 && h > 0);
-    if (fb.ready) {
-        console_write("[FB] Linear framebuffer active!\n");
-    }
+    fb.ready = (addr && w && h) ? 1 : 0;
+    if (fb.ready) console_write("[FB] Framebuffer active\n");
 }
 
-int fb_is_ready(void) {
-    return fb.ready;
-}
+int fb_is_ready(void) { return fb.ready; }
+uint32_t fb_width(void) { return fb.width; }
+uint32_t fb_height(void) { return fb.height; }
+uint32_t* fb_addr(void) { return fb.addr; }
+uint32_t fb_pitch(void) { return fb.pitch; }
+uint32_t fb_bpp(void) { return fb.bpp; }
 
 void fb_putpixel(uint32_t x, uint32_t y, uint32_t color) {
     if (!fb.ready || x >= fb.width || y >= fb.height) return;
-    uint8_t* base = (uint8_t*)fb.addr + y * fb.pitch + x * 4;
-    *(uint32_t*)base = color;
+    uint8_t* row = (uint8_t*)fb.addr + y * fb.pitch;
+    ((uint32_t*)row)[x] = color;
 }
 
 void fb_fill_rect(uint32_t x, uint32_t y, uint32_t w, uint32_t h, uint32_t color) {
-    if (!fb.ready) return;
-    for (uint32_t dy = 0; dy < h; dy++) {
-        for (uint32_t dx = 0; dx < w; dx++) {
-            fb_putpixel(x + dx, y + dy, color);
-        }
-    }
+    for (uint32_t j = 0; j < h; j++)
+        for (uint32_t i = 0; i < w; i++)
+            fb_putpixel(x + i, y + j, color);
 }
 
 void fb_clear(uint32_t color) {
@@ -44,24 +46,8 @@ void fb_clear(uint32_t color) {
     fb_fill_rect(0, 0, fb.width, fb.height, color);
 }
 
-/* Draw a simple demo matching JagX design colors */
 void fb_draw_demo(void) {
-    if (!fb.ready) {
-        console_write("[FB] No framebuffer - text mode only\n");
-        return;
-    }
-
-    /* Deep black background */
-    fb_clear(0x00000000);
-
-    /* Teal header bar */
-    fb_fill_rect(0, 0, fb.width, 48, 0xFF00D4C8);
-
-    /* Soft purple accent rectangle */
-    fb_fill_rect(80, 120, 400, 200, 0xFF7B5EA7);
-
-    /* Another teal card */
-    fb_fill_rect(520, 120, 300, 200, 0xFF00B7A8);
-
-    console_write("[FB] Demo rectangles drawn (teal + purple)\n");
+    if (!fb.ready) return;
+    fb_clear(0xFF0A0A12);
+    fb_fill_rect(40, 40, 200, 120, 0xFF00D4C8);
 }

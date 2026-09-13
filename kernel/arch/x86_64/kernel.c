@@ -1,4 +1,4 @@
-/* JagX v0.0.18 */
+/* JagX v0.0.19 */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -23,6 +23,8 @@
 #include "../../../mobile/notifications.h"
 #include "../../../mobile/filemanager.h"
 #include "../../../mobile/features.h"
+#include "../../../mobile/statusbar.h"
+#include "../../../mobile/lockscreen.h"
 
 extern int boot_verify_marker(void);
 struct compositor g_compositor;
@@ -36,7 +38,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.18\n===============\n\n");
+    console_write("JagX OS v0.0.19\n===============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -53,15 +55,14 @@ void kernel_main(uint32_t magic, void* mb_info) {
     features_init();
     control_center_init();
     settings_init();
+    statusbar_init();
+    lockscreen_init();
 
-    notifications_push("Welcome", "JagX is running");
-    notifications_push("Gallery", "Screenshots save here");
+    notifications_push("Welcome", "Swipe up to unlock");
+    notifications_push("Gallery", "BMP screenshots enabled");
 
     screenshot_set_triple_tap_enabled(1);
     gallery_add(JAGX_MEDIA_PHOTO, "camera-demo.jpg", 1280, 720, 200000);
-    screenshot_take();
-    gallery_list_console();
-    filemanager_list_root();
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -69,16 +70,15 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 40, 40, 320, 220, "Gallery");
-    compositor_create_window(&g_compositor, 280, 80, 320, 220, "Files");
-    compositor_create_window(&g_compositor, 160, 200, 320, 200, "Settings");
-    compositor_toggle_control_center(&g_compositor);
-    compositor_toggle_notification_shade(&g_compositor);
+    compositor_create_window(&g_compositor, 40, 40, 300, 200, "Gallery");
+    compositor_create_window(&g_compositor, 280, 80, 300, 200, "Files");
+    compositor_create_window(&g_compositor, 140, 180, 360, 240, "Settings");
     compositor_render(&g_compositor);
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("Notif shade + Files + FB screenshot dump live\n");
+    console_write("Lock screen + status bar + BMP shots + TLS master PRF\n");
+    console_write("Swipe up on lock screen to unlock\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }

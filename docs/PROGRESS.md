@@ -1,6 +1,7 @@
-# JagX v0.0.18
+# JagX v0.0.19
 
-- Screenshot writes sample capture into **RamFS** (`/screens/…`) + Gallery
-- **Notification shade** (pull from top / toggle); badge when notifications exist
-- **File manager** over RamFS (list + visual panel)
-- Seed notifications on boot
+- TLS `tls_master_secret()` from PMS via PRF; key_block after ServerHello
+- Settings richer UI (sidebar + rows)
+- Screenshots as **BMP** into RamFS (scaled to fit 4K file limit)
+- Status bar: clock tick + battery icon
+- Lock screen with swipe-up unlock
