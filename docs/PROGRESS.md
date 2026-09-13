@@ -1,6 +1,5 @@
-# JagX v0.0.22
+# JagX v0.0.23
 
-- Real `.jagx` package format (magic, manifest, payload, checksum)
-- Package install to RamFS `/apps/`
-- **Noder** native IDE + packaged as `com.jagx.noder`
-- Documented: APK cannot be renamed to run on JagX
+- Linked upstream Noder Actions (v0.8.0 builds)
+- Packaged core apps as `.jagx`
+- Wi‑Fi join phone hotspot + soft-AP APIs + HOTSPOT.md

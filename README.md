@@ -1,26 +1,36 @@
-# JagX OS v0.0.22
+# JagX OS v0.0.23
 
-**Founder:** Gbadamosi Tajudeen Olajide · **JagX & JRILICENSE**  
+**Founder:** Gbadamosi Tajudeen Olajide · JagX & JRILICENSE  
 https://github.com/Tajudeen001-security/JagX-Operating-System
 
-## App packages = `.jagx` (not APK / IPA)
+## Noder (full desktop IDE)
 
-| Platform | Package file |
-|----------|----------------|
-| Android | `.apk` |
-| iOS | `.ipa` |
-| Windows | `.exe` / `.msi` |
-| **JagX** | **`.jagx`** |
+Upstream: **https://github.com/JagX-JRILICENSE/Noder**  
+Actions: **https://github.com/JagX-JRILICENSE/Noder/actions** (Build All Platforms / Build Windows App, v0.8.0+)
 
-APK will **not** run on JagX. Rebuild apps as `.jagx`.
+- **Windows/laptop:** use that Electron Noder now (`npm run electron:dev` / `npm run build:win`)
+- **JagX OS:** `noder.jagx` + other apps as **`.jagx`** packages
 
-### Noder (VS Code–class editor)
+## Package more apps
 
-- Product: **Noder** by **JagX & JRILICENSE**
-- On JagX: native editor + **`noder.jagx`** installed by package manager
-- Docs: [PACKAGE_FORMAT.md](docs/PACKAGE_FORMAT.md)
+Installed as `.jagx`: Noder, Notepad, Paint, JagSheet, JagBase, Terminal, Calculator, Forms, Contacts, Gallery, Settings
 
-## Build
+## Wi‑Fi / phone hotspot
+
+See **[docs/HOTSPOT.md](docs/HOTSPOT.md)**
+
+```c
+wifi_join("PhoneSSID", "password");   /* join another phone hotspot */
+wifi_start_hotspot("JagX-Share", "secret"); /* share from this device */
+```
+
+## Can you use it now?
+
+| Target | Now |
+|--------|-----|
+| Noder on Windows | **Yes** — JagX-JRILICENSE/Noder |
+| JagX OS in QEMU | **Yes** — lab boot + packages + APIs |
+| JagX on phone joining real hotspot RF | Needs Wi‑Fi driver on hardware |
 
 ```bash
 cd kernel && make && make iso

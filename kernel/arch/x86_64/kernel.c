@@ -1,4 +1,4 @@
-/* JagX v0.0.22 — real .jagx packages + Noder */
+/* JagX v0.0.23 */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -15,6 +15,7 @@
 #include "../../syscall/syscall.h"
 #include "../../../compositor/compositor.h"
 #include "../../../net/net.h"
+#include "../../../net/wifi_hotspot.h"
 #include "../../../userland/process.h"
 #include "../../../mobile/control_center.h"
 #include "../../../mobile/settings.h"
@@ -30,6 +31,7 @@
 #include "../../../drivers/driver.h"
 
 extern void drivers_register_builtins(void);
+extern void pkg_bundle_core_apps(void);
 extern int boot_verify_marker(void);
 struct compositor g_compositor;
 static uint8_t user_stack[8192] __attribute__((aligned(16)));
@@ -42,7 +44,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.22\n===============\n\n");
+    console_write("JagX OS v0.0.23\n===============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -57,6 +59,7 @@ void kernel_main(uint32_t magic, void* mb_info) {
     drivers_probe_all();
 
     net_init();
+    wifi_stack_init();
     ramfs_init();
     pkg_init();
     gallery_init();
@@ -69,19 +72,23 @@ void kernel_main(uint32_t magic, void* mb_info) {
     terminal_init();
     noder_init();
 
-    /* Real package install: Noder as .jagx */
-    if (noder_package_install() == 0)
-        console_write("[PKG] Noder.jagx installed\n");
+    noder_package_install();
+    pkg_bundle_core_apps();
 
-    console_write("[PKG] Installed packages: ");
+    /* Example: join a phone hotspot SSID (user replaces with real name/pass) */
+    struct wifi_network nets[8];
+    int n = wifi_scan(nets, 8);
+    console_write("[WIFI] Networks found: ");
+    console_write_dec((uint32_t)n);
+    console_write("\n");
+    wifi_join("AndroidAP_1234", "password");
+
+    console_write("[PKG] Total installed: ");
     console_write_dec((uint32_t)pkg_list_count());
     console_write("\n");
-    for (int i = 0; i < pkg_list_count(); i++) {
-        const struct jagx_pkg_info* p = pkg_list_at(i);
-        if (p) { console_write("  - "); console_write(p->name); console_write("\n"); }
-    }
 
-    notifications_push("Noder", "JagX IDE packaged as .jagx");
+    notifications_push("Noder", "Upstream: github.com/JagX-JRILICENSE/Noder");
+    notifications_push("Wi-Fi", "Hotspot join API active");
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -89,14 +96,15 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 40, 40, 500, 320, "Noder");
-    compositor_create_window(&g_compositor, 560, 40, 220, 160, "Terminal");
+    compositor_create_window(&g_compositor, 30, 36, 480, 300, "Noder");
+    compositor_create_window(&g_compositor, 530, 36, 240, 140, "Wi-Fi");
+    compositor_create_window(&g_compositor, 530, 190, 240, 140, "Packages");
     compositor_render(&g_compositor);
-    if (fb_is_ready()) noder_draw(48, 72, 480, 280);
+    if (fb_is_ready()) noder_draw(38, 68, 460, 260);
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("Package format: .jagx (not APK/IPA)\n");
+    console_write("Use desktop Noder on Windows; .jagx apps on JagX\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }

@@ -17,6 +17,7 @@ OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o 
   mm/pmm.o mm/heap.o mm/paging.o fs/ramfs.o syscall/syscall.o \
   ../compositor/compositor.o ../net/net.o ../net/virtio_net.o ../net/dns.o ../net/tcp.o \
   ../net/ipv4.o ../net/udp.o ../net/http.o ../net/arp.o ../net/dhcp.o ../net/tls.o ../net/tls_crypto.o \
+  ../net/wifi_hotspot.o \
   ../userland/process.o ../crypto/sha256.o ../crypto/aead.o ../crypto/chacha20poly1305.o \
   ../mobile/control_center.o ../mobile/settings.o ../mobile/gallery.o \
   ../mobile/screenshot.o ../mobile/screencast.o ../mobile/features.o \
@@ -24,7 +25,8 @@ OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o 
   ../mobile/hal/camera.o ../mobile/hal/lights.o ../mobile/hal/radio.o ../mobile/hal/wifi.o \
   ../apps/notepad.o ../apps/paint.o ../apps/sheet.o ../apps/database.o ../apps/office.o \
   ../apps/terminal.o ../apps/calc.o ../apps/calendar.o ../apps/contacts.o ../apps/ide.o ../apps/forms.o \
-  ../apps/noder.o ../i18n/lang.o ../drivers/driver.o ../drivers/stubs.o ../pkg/jagxpkg.o
+  ../apps/noder.o ../i18n/lang.o ../drivers/driver.o ../drivers/stubs.o \
+  ../pkg/jagxpkg.o ../pkg/bundle_apps.o
 .PHONY: all clean run iso
 all: jagx.kernel
 jagx.kernel: $(OBJS) linker.ld
