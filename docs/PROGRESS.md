@@ -1,24 +1,19 @@
-# JagX v0.0.8
+# JagX v0.0.9
 
-## Web / JagBrowser
+## Networking
+- Virtio-net: real virtqueue allocation (desc/avail/used), PFN register, TX notify path
+- DNS: real query packet builder (A record)
+- TCP: PCB + SYN-SENT state machine stub
+- Live URLs still need IPv4/UDP glue + RX path completion
 
-- Architecture for URL navigation + web search documented honestly
-- `jagx_navigate_or_search()` API added
-- Local answer for “founder of JagX” → Gbadamosi Tajudeen Olajide + project link
-- Live youtube.com / Google-scale search **requires** unfinished networking (TCP/TLS/HTTP) — not claimed as working yet
+## Userspace
+- Process table + create
+- int 0x80 gate at DPL=3 + dispatcher
+- Full ring-3 switch still needs TSS + per-process address spaces
 
-## Security & system
+## Crypto
+- **SHA-256 full implementation** (used for secure boot hashing)
+- AEAD encrypt/decrypt API reserved for volume crypto / TLS
 
-- ENCRYPTION.md — algorithms and policy direction
-- SECURE_BOOT.md — verification chain notes
-- MOBILE_SECURITY.md — phone-specific rules
-- Userspace directory + init stub
-- Founder attribution file (FOUNDER.md)
-
-## Still required for real web browsing
-
-1. Complete virtio-net RX/TX rings
-2. DNS + TCP
-3. TLS 1.3
-4. HTTP client
-5. HTML renderer into compositor
+## Secure boot
+- `boot/sign-kernel.sh` — hash + optional openssl detached sign/verify

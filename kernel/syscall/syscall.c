@@ -1,39 +1,34 @@
 #include "syscall.h"
 #include "../arch/x86_64/console.h"
 #include "../arch/x86_64/timer.h"
-#include "../fs/ramfs.h"
+#include "../arch/x86_64/idt.h"
 
-/* Very early syscall interface.
- * Later this will be triggered by int 0x80 or sysenter/syscall instruction.
- * For now we just provide the dispatcher that can be called from kernel or future userspace.
- */
+extern void syscall_entry(void);
 
-int syscall_handler(uint32_t num, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
-    (void)arg3;
-
+int syscall_dispatcher(uint32_t num, uint32_t a1, uint32_t a2, uint32_t a3) {
+    (void)a2; (void)a3;
     switch (num) {
-        case SYS_WRITE: {
-            /* arg1 = pointer to string (kernel address for now) */
-            console_write((const char*)arg1);
+        case SYS_WRITE:
+            console_write((const char*)a1);
             return 0;
-        }
-        case SYS_UPTIME: {
+        case SYS_UPTIME:
             return (int)timer_get_ticks();
-        }
-        case SYS_GETPID: {
-            return 1;  /* Only kernel "process" for now */
-        }
-        case SYS_EXIT: {
-            console_write("[SYS] Process exited\n");
+        case SYS_GETPID:
+            return 1;
+        case SYS_EXIT:
+            console_write("[SYS] exit\n");
             return 0;
-        }
         default:
-            console_write("[SYS] Unknown syscall\n");
             return -1;
     }
 }
 
+int syscall_handler(uint32_t num, uint32_t arg1, uint32_t arg2, uint32_t arg3) {
+    return syscall_dispatcher(num, arg1, arg2, arg3);
+}
+
 void syscall_init(void) {
-    console_write("[SYSCALL] Dispatcher ready (numbers 1-5)\n");
-    /* Future: install int 0x80 gate in IDT here */
+    /* Install int 0x80 as DPL=3 interrupt gate so userspace can call it */
+    idt_set_gate(0x80, (uint32_t)syscall_entry, 0x08, 0xEE);
+    console_write("[SYSCALL] int 0x80 gate installed (DPL=3)\n");
 }

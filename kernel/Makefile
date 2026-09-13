@@ -1,51 +1,33 @@
-CC      ?= i686-elf-gcc
-AS      ?= i686-elf-as
-LD      ?= i686-elf-ld
-
+CC ?= i686-elf-gcc
+AS ?= i686-elf-as
+LD ?= i686-elf-ld
 ifeq (,$(shell which i686-elf-gcc 2>/dev/null))
   CC = gcc -m32
   AS = as --32
   LD = ld -m elf_i386
 endif
 
-CFLAGS  = -std=gnu99 -ffreestanding -O2 -Wall -Wextra \
-          -fno-stack-protector -fno-pic -mno-red-zone \
-          -I arch/x86_64 -I mm -I fs -I syscall -I ../compositor -I ../net
-
+CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-pic -mno-red-zone \
+  -I arch/x86_64 -I mm -I fs -I syscall -I ../compositor -I ../net -I ../userland -I ../crypto
 LDFLAGS = -T linker.ld -nostdlib
 
-OBJS = arch/x86_64/boot.o \
-       arch/x86_64/gdt.o \
-       arch/x86_64/idt.o \
-       arch/x86_64/pic.o \
-       arch/x86_64/timer.o \
-       arch/x86_64/keyboard.o \
-       arch/x86_64/mouse.o \
-       arch/x86_64/irq.o \
-       arch/x86_64/console.o \
-       arch/x86_64/framebuffer.o \
-       arch/x86_64/multiboot.o \
-       arch/x86_64/kernel.o \
-       mm/pmm.o \
-       mm/heap.o \
-       mm/paging.o \
-       fs/ramfs.o \
-       syscall/syscall.o \
-       ../compositor/compositor.o \
-       ../net/net.o \
-       ../net/virtio_net.o
+OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o \
+  arch/x86_64/timer.o arch/x86_64/keyboard.o arch/x86_64/mouse.o arch/x86_64/irq.o \
+  arch/x86_64/console.o arch/x86_64/framebuffer.o arch/x86_64/multiboot.o \
+  arch/x86_64/syscall_gate.o arch/x86_64/kernel.o \
+  mm/pmm.o mm/heap.o mm/paging.o fs/ramfs.o syscall/syscall.o \
+  ../compositor/compositor.o ../net/net.o ../net/virtio_net.o ../net/dns.o ../net/tcp.o \
+  ../userland/process.o ../crypto/sha256.o ../crypto/aead.o
 
 .PHONY: all clean run iso
 
 all: jagx.kernel
-
 jagx.kernel: $(OBJS) linker.ld
 	$(LD) $(LDFLAGS) -o $@ $(OBJS)
-	@echo "Built jagx.kernel"
+	@echo Built jagx.kernel
 
 %.o: %.c
 	$(CC) $(CFLAGS) -c $< -o $@
-
 %.o: %.asm
 	$(AS) $< -o $@
 

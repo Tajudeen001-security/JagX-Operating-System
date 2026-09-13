@@ -1,28 +1,25 @@
-# Secure Boot Notes (JagX)
+# Secure Boot — JagX
 
-## Goal
+## Development signing flow
 
-Ensure that only trusted JagX boot components run, from firmware/bootloader through the kernel.
+```bash
+cd kernel && make
+cd ../boot
+bash sign-kernel.sh ../kernel/jagx.kernel .
+```
 
-## Intended chain
+Produces:
+- `jagx.kernel.sha256` — raw hash (also computable in-kernel via SHA-256)
+- `jagx.kernel.sig` + `dev-signing.pub` — openssl detached signature (dev only)
 
-1. Firmware / UEFI (or platform boot ROM on mobile)
-2. Signed bootloader (or GRUB with signature verification where applicable)
-3. Signed kernel image
-4. Optional measured init / first userspace
+## Runtime verification (direction)
 
-## Design notes
+1. Bootloader or early kernel computes SHA-256 of the loaded image
+2. Compare to expected hash or verify signature with embedded public key
+3. On failure: halt with clear message (no silent untrusted boot)
 
-- Use a platform key hierarchy (or project-controlled keys for development devices)
-- Kernel image signature verified before jump to entry point
-- On failure: clear error state, no silent fallback to untrusted payload
-- Development builds may use a separate “dev” key enrolled only on test machines
+## Production
 
-## Mobile
-
-- Align with device fuse / OTP keys where hardware allows
-- Verified boot must not brick devices during early bring-up; recovery path required
-
-## Current status
-
-Documented intent. Implementation depends on stable boot path (GRUB/ISO already started on x86; aarch64 boot still early).
+- Replace dev RSA with proper key hierarchy / platform keys
+- Prefer hardware root of trust on mobile when available
+- Keep recovery path so devices are not bricked during bring-up
