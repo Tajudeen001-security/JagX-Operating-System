@@ -1,15 +1,11 @@
-# JagX OS — v0.0.9
+# JagX OS v0.0.10
 
 Founder: **Gbadamosi Tajudeen Olajide**
 
-From-scratch PC + Mobile OS. Dark / teal / purple design. Security-oriented.
-
-### This release
-- Virtqueues + DNS query builder + TCP PCB
-- Process table + `int 0x80` syscalls
-- Real SHA-256 + AEAD interface
-- Kernel hash/sign script for secure boot path
-
-Live web browsing still needs IP/UDP completion after virtio TX/RX.
+### New
+- **IPv4 + UDP** so DNS queries go through virtio TX
+- **TSS + Ring-3** enter path
+- **ChaCha20-Poly1305** AEAD (ChaCha20 real; MAC simplified for size)
+- **Boot hash verify** before continuing
 
 https://github.com/Tajudeen001-security/JagX-Operating-System

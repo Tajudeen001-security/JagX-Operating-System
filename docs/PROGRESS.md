@@ -1,19 +1,22 @@
-# JagX v0.0.9
+# JagX v0.0.10
 
 ## Networking
-- Virtio-net: real virtqueue allocation (desc/avail/used), PFN register, TX notify path
-- DNS: real query packet builder (A record)
-- TCP: PCB + SYN-SENT state machine stub
-- Live URLs still need IPv4/UDP glue + RX path completion
+- Real IPv4 header + checksum
+- Real UDP datagram builder
+- DNS A query sent via UDP/IPv4 → virtio TX (on-wire path)
+- RX/parse of DNS answers still next
 
 ## Userspace
-- Process table + create
-- int 0x80 gate at DPL=3 + dispatcher
-- Full ring-3 switch still needs TSS + per-process address spaces
+- GDT user code/data segments
+- TSS loaded (`ltr`)
+- `enter_user_mode()` iret path to ring 3
+- int 0x80 from user side prepared
 
 ## Crypto
-- **SHA-256 full implementation** (used for secure boot hashing)
-- AEAD encrypt/decrypt API reserved for volume crypto / TLS
+- ChaCha20 core (real quarter rounds)
+- AEAD encrypt/decrypt with development Poly1305-style tag
+- Self-test in kernel boot
 
 ## Secure boot
-- `boot/sign-kernel.sh` — hash + optional openssl detached sign/verify
+- `boot_verify_marker()` / `boot_verify_buffer()` using SHA-256
+- Kernel refuses to continue if marker hash path fails
