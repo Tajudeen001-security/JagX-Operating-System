@@ -1,77 +1,37 @@
 # JagX Operating System
 
-**JagX** is an original, open-source operating system built **from scratch** — no Linux, no Android, no iOS base.
+**JagX** is an original open-source operating system built from scratch (no Linux, Android, or iOS base).
 
-It targets both **PC** and **Mobile** as first-class citizens, with a special ambition:
+It targets both **PC** and **Mobile**, with a strong ambition to make the **mobile experience one of the best** in the world.
 
-> **Make the JagX Mobile experience one of the best in the world** — smooth, private, efficient, beautiful, and under the user’s full control.
+## Visual Direction
 
-## Core Goals
+We are designing a premium dark interface with electric teal and soft purple accents — clean, modern, fast-feeling, and original.
 
-- Completely independent kernel and system software
-- Dual architecture support: x86_64 (PC) + aarch64 (Mobile & modern PC)
-- Own native web browser (**JagBrowser**)
-- Security and privacy by design
-- Excellent mobile experience as a top priority (not an afterthought)
+Concept work already includes:
+- Bootscreens (PC + Mobile)
+- Mobile home & lock screen
+- Desktop environment
+- Settings, multitasking, notifications, file manager ideas
+- JagBrowser concepts
 
-## Why JagX Mobile aims to be among the best
+## Current Technical Status
 
-Most mobile operating systems today are either closed (iOS) or heavy Linux-based (Android).  
-JagX Mobile is designed from day one with these principles:
+| Area                  | Status                                      |
+|-----------------------|---------------------------------------------|
+| x86 Kernel            | Bootable, interrupts, memory, FS, syscalls  |
+| Framebuffer layer     | Early preparation added                     |
+| aarch64 / Mobile      | Skeleton + strong design docs               |
+| Design System         | Documented                                  |
+| Graphical UI          | Concepts ready, implementation starting     |
 
-- **Extremely low input latency** (touch and gesture pipeline optimized)
-- **Predictable performance** and smooth 120 Hz+ UI when hardware allows
-- **Aggressive but intelligent power management**
-- **Strong privacy defaults** and transparent permission model
-- **Lightweight base** — no unnecessary background services
-- **Beautiful, modern, consistent design language**
-- **Full user ownership** — no forced accounts, no telemetry by default
-- **Long-term updateability** even on older devices
+## Repository
 
-## Current Status (Early)
-
-| Area              | Status                          |
-|-------------------|---------------------------------|
-| x86 Kernel        | Bootable, interrupts, memory, basic FS & syscalls |
-| aarch64 / Mobile  | Architecture skeleton + design docs |
-| Graphics          | VGA text only (framebuffer later) |
-| Touch / Gestures  | Design phase                    |
-| Power Management  | Design phase                    |
-| JagBrowser        | Placeholder                     |
-| Userspace         | Very early stubs                |
-
-## Repository Layout
-
-```
-JagX-Operating-System/
-├── kernel/           # Shared + arch-specific kernel code
-│   ├── arch/
-│   │   ├── x86_64/
-│   │   └── aarch64/  # Mobile & modern ARM PC
-│   ├── mm/
-│   ├── fs/
-│   └── syscall/
-├── mobile/           # Mobile-specific design, UX, HAL ideas
-├── browser/          # JagBrowser
-├── docs/             # Architecture, vision, roadmaps
-└── ...
-```
-
-## Building the current (x86) kernel
-
-```bash
-cd kernel
-make
-make run          # QEMU
-```
-
-## Contributing
-
-This is a long-term, ambitious project. Low-level systems programmers, mobile UI/UX people, and security-minded developers are especially welcome.
+https://github.com/Tajudeen001-security/JagX-Operating-System
 
 ## License
 
-MIT License — fully open source.
+MIT — fully open source.
 
 ---
 

@@ -27,6 +27,7 @@ OBJS = arch/x86_64/boot.o \
        arch/x86_64/keyboard.o \
        arch/x86_64/irq.o \
        arch/x86_64/console.o \
+       arch/x86_64/framebuffer.o \
        arch/x86_64/kernel.o \
        mm/pmm.o \
        mm/heap.o \

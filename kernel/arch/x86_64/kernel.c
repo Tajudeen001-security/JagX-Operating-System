@@ -1,13 +1,7 @@
 /* ============================================================
- * JagX Kernel - Main entry point (v0.0.2)
+ * JagX Kernel - Main entry point (v0.0.3)
  * ============================================================
- * New in this version:
- *   1. Improved keyboard (Shift + Caps Lock)
- *   2. Physical Memory Manager (bitmap)
- *   3. Simple kernel heap (kmalloc)
- *   4. Basic paging (identity map)
- *   5. RamFS (in-memory filesystem)
- *   6. Syscall dispatcher stub
+ * Continuing development toward the graphical vision.
  * ============================================================
  */
 
@@ -17,6 +11,7 @@
 #include "timer.h"
 #include "keyboard.h"
 #include "console.h"
+#include "framebuffer.h"
 
 #include "../../mm/pmm.h"
 #include "../../mm/heap.h"
@@ -26,7 +21,7 @@
 
 void kernel_main(void) {
     console_init();
-    console_write("JagX Operating System v0.0.2\n");
+    console_write("JagX Operating System v0.0.3\n");
     console_write("=============================\n\n");
 
     console_write("[*] GDT...\n");
@@ -39,9 +34,12 @@ void kernel_main(void) {
     pic_remap();
 
     /* Memory management */
-    pmm_init(128 * 1024);          /* Assume 128 MB for QEMU default */
+    pmm_init(128 * 1024);
     heap_init();
     paging_init();
+
+    /* Graphics preparation */
+    fb_init();
 
     /* Higher level services */
     ramfs_init();
@@ -50,25 +48,22 @@ void kernel_main(void) {
     console_write("[*] Timer (100 Hz)...\n");
     timer_init(100);
 
-    console_write("[*] Keyboard (Shift + Caps Lock supported)...\n");
+    console_write("[*] Keyboard...\n");
     keyboard_init();
 
-    /* Enable interrupts */
     __asm__ volatile ("sti");
 
-    console_write("\n=== System Ready ===\n");
-    console_write("Type on the keyboard. Timer dots appear every second.\n");
-    console_write("RamFS demo files available.\n\n");
+    console_write("\n=== JagX Kernel Ready ===\n");
+    console_write("Text mode active. Graphical framebuffer layer prepared.\n");
+    console_write("Design direction: dark + teal/purple premium UI.\n\n");
 
-    /* Show RamFS contents */
     ramfs_list();
 
     console_write("\n> ");
 
-    /* Demo a syscall */
-    syscall_handler(SYS_WRITE, (uint32_t)"[DEMO] Syscall write works!\n", 0, 0);
+    /* Demo syscall */
+    syscall_handler(1, (uint32_t)"[DEMO] Syscall + design system online\n", 0, 0);
 
-    /* Main loop */
     for (;;) {
         __asm__ volatile ("hlt");
     }
