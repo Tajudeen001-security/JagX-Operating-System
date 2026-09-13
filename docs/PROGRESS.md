@@ -1,11 +1,10 @@
-# JagX v0.0.13
+# JagX v0.0.14
 
-## Networking
-- **ARP** table, request, reply learning; IPv4 uses ARP before send
-- **DHCP** DISCOVER + offer parsing / QEMU default lease fallback
-- **TLS** foundation: ClientHello builder + send over TCP (full handshake still open)
+## TLS
+- ClientHello send
+- ServerHello detection on RX path
+- App-data still blocked until key schedule
 
-## Toward HTTPS
-1. ~~ARP/DHCP~~
-2. TLS ServerHello + key schedule + cert verify
-3. Application data records for HTTPS GET
+## Docs
+- `docs/REPLACE_ANDROID.md` — full guide for Tecno/Itel/etc. migration expectations
+- README linked to camera, SMS, SIM, control center, flashlight targets
