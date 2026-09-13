@@ -1,28 +1,26 @@
 # JagX Operating System
 
-Original from-scratch OS for PC and Mobile (no Linux/Android/iOS base).
+From-scratch OS for **PC** and **Mobile**. No Linux, Android, or iOS base.
 
-## v0.0.6 Highlights (Real code)
+## v0.0.7
 
-- **aarch64**: MMU identity map actually enabled + UART
-- **PS/2 mouse** driver (position + buttons)
-- **Compositor** draws real window chrome (title bar, close button, shadow, cursor)
-- **Virtio-net** PCI detection
-- **GRUB + ISO** build path for reliable Multiboot2 framebuffer
+- Live mouse cursor + **window dragging**
+- Virtio-net real init sequence
+- Stronger aarch64 (MMU + caches + timer + GIC start)
+- Security architecture document (capability-first direction)
 
-## Quick start
+## Design language
+Dark · Electric teal · Soft purple · Built for excellent mobile experience
+
+## Build
 
 ```bash
 cd kernel
 make
-make run          # text / limited FB
-
-# For proper graphical boot:
-make iso
+make iso                    # GRUB ISO for real framebuffer
 qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
 ```
 
-## Design
-Dark theme · Electric teal · Soft purple · Built for both desktop and excellent mobile experience.
-
 https://github.com/Tajudeen001-security/JagX-Operating-System
+
+MIT License

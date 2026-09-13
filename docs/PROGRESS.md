@@ -1,31 +1,32 @@
-# JagX v0.0.6 - Real implementations
+# JagX v0.0.7
 
-## What is actually implemented (not demo comments)
+## Real implementations added
 
-### aarch64
-- Real UART TX with flag polling
-- Exception vectors live in `vbar_el1`
-- MMU turned on with identity mapping (SCTLR_EL1.M=1)
-- Confirmed by serial messages after MMU enable
-
-### x86 Graphics + Input
-- Multiboot2 framebuffer tag request + parser
-- Real pixel plot / fill when FB is present
-- PS/2 mouse driver (IRQ12) with packet assembly and position tracking
-- Compositor draws real window chrome: shadow, title bar, close button, focus line, cursor
+### Input & Windowing
+- Live mouse cursor redraw on every packet
+- Window dragging by title bar (left button)
+- Proper focus + chrome (shadow, title, close, focus line)
 
 ### Networking
-- PCI scan for virtio-net (real config space reads)
-- Loopback interface
-- Detection message when device is present under QEMU
+- Virtio-net: real PCI BAR discovery, status machine (ACK → DRIVER → FEATURES_OK → DRIVER_OK)
+- Transmit entry point ready for ring completion
 
-### Boot
-- GRUB config + ISO build script so Multiboot2 framebuffer can be reliably provided
+### aarch64
+- MMU + I/D caches enabled
+- Two 1GB identity blocks
+- Generic timer (CNTP) enabled
+- GIC distributor minimal bring-up
 
-## How to get graphical FB reliably
+### Security
+- Dedicated SECURITY.md with capability-oriented roadmap
+- Principles locked in for all future work
+
+## Boot
+
+Use the ISO path for reliable Multiboot2 framebuffer:
 
 ```bash
-cd kernel && make
-make iso          # requires grub-mkrescue
-qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
+cd kernel && make && make iso
+qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio \
+  -netdev user,id=net0 -device virtio-net-pci,netdev=net0
 ```

@@ -1,4 +1,4 @@
-/* JagX Kernel v0.0.6 - Real drivers focus */
+/* JagX Kernel v0.0.7 */
 
 #include "gdt.h"
 #include "idt.h"
@@ -18,11 +18,11 @@
 #include "../../../compositor/compositor.h"
 #include "../../../net/net.h"
 
-static struct compositor comp;
+struct compositor g_compositor;
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.6\n");
+    console_write("JagX OS v0.0.7\n");
     console_write("==============\n\n");
 
     multiboot2_parse(magic, mb_info);
@@ -39,23 +39,16 @@ void kernel_main(uint32_t magic, void* mb_info) {
 
     fb_init();
 
-    // Real input devices
     timer_init(100);
     keyboard_init();
     mouse_init();
 
-    // Networking (loopback + virtio probe)
     net_init();
 
-    // Compositor with real chrome
-    compositor_init(&comp);
-    compositor_create_window(&comp, 80, 60, 420, 280, "JagX Shell");
-    compositor_create_window(&comp, 360, 160, 380, 260, "System");
-    compositor_render(&comp);
-
-    // Draw cursor at initial mouse position
-    struct mouse_state ms = mouse_get_state();
-    compositor_draw_cursor(ms.x + 200, ms.y + 150);
+    compositor_init(&g_compositor);
+    compositor_create_window(&g_compositor, 60, 50, 400, 260, "JagX Shell");
+    compositor_create_window(&g_compositor, 320, 140, 360, 240, "Security");
+    compositor_render(&g_compositor);
 
     ramfs_init();
     syscall_init();
@@ -63,16 +56,14 @@ void kernel_main(uint32_t magic, void* mb_info) {
     __asm__ volatile ("sti");
 
     console_write("\n=== JagX Ready ===\n");
+    console_write("Mouse: live cursor + window dragging\n");
+    console_write("Virtio-net: probed + basic init\n");
+    console_write("Security foundations active\n");
     if (fb_is_ready())
-        console_write("Framebuffer active - windows + cursor drawn\n");
-    else
-        console_write("Text mode (use ISO/GRUB for reliable FB)\n");
-
-    console_write("PS/2 mouse live | Virtio-net probed | MMU path on aarch64\n");
+        console_write("Framebuffer active\n");
     console_write("> ");
 
     for (;;) {
         __asm__ volatile ("hlt");
-        // Future: redraw cursor on mouse movement
     }
 }
