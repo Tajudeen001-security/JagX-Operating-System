@@ -1,4 +1,4 @@
-/* JagX v0.0.21 — bilingual, drivers, full app suite */
+/* JagX v0.0.22 — real .jagx packages + Noder */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -19,19 +19,13 @@
 #include "../../../mobile/control_center.h"
 #include "../../../mobile/settings.h"
 #include "../../../mobile/gallery.h"
-#include "../../../mobile/screenshot.h"
 #include "../../../mobile/notifications.h"
-#include "../../../mobile/filemanager.h"
-#include "../../../mobile/features.h"
 #include "../../../mobile/statusbar.h"
 #include "../../../mobile/lockscreen.h"
 #include "../../../apps/office.h"
+#include "../../../apps/noder.h"
 #include "../../../apps/terminal.h"
-#include "../../../apps/calc.h"
-#include "../../../apps/calendar.h"
-#include "../../../apps/contacts.h"
-#include "../../../apps/ide.h"
-#include "../../../apps/forms.h"
+#include "../../../pkg/jagxpkg.h"
 #include "../../../i18n/lang.h"
 #include "../../../drivers/driver.h"
 
@@ -48,7 +42,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.21\n===============\n\n");
+    console_write("JagX OS v0.0.22\n===============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -61,31 +55,33 @@ void kernel_main(uint32_t magic, void* mb_info) {
     drivers_init();
     drivers_register_builtins();
     drivers_probe_all();
-    drivers_list_console();
 
     net_init();
     ramfs_init();
+    pkg_init();
     gallery_init();
     notifications_init();
-    filemanager_init();
-    features_init();
     control_center_init();
     settings_init();
     statusbar_init();
     lockscreen_init();
-
     office_init();
     terminal_init();
-    calc_init();
-    calendar_init();
-    contacts_init();
-    ide_init();
-    forms_init();
+    noder_init();
 
-    console_write(L("welcome"));
+    /* Real package install: Noder as .jagx */
+    if (noder_package_install() == 0)
+        console_write("[PKG] Noder.jagx installed\n");
+
+    console_write("[PKG] Installed packages: ");
+    console_write_dec((uint32_t)pkg_list_count());
     console_write("\n");
-    notifications_push("JagX", L("welcome"));
-    notifications_push("Apps", "Office Dev Gov User suite");
+    for (int i = 0; i < pkg_list_count(); i++) {
+        const struct jagx_pkg_info* p = pkg_list_at(i);
+        if (p) { console_write("  - "); console_write(p->name); console_write("\n"); }
+    }
+
+    notifications_push("Noder", "JagX IDE packaged as .jagx");
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -93,17 +89,14 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 20, 32, 260, 150, "Notepad");
-    compositor_create_window(&g_compositor, 300, 32, 240, 150, "Paint");
-    compositor_create_window(&g_compositor, 560, 32, 220, 150, "Terminal");
-    compositor_create_window(&g_compositor, 20, 200, 280, 160, "JagSheet");
-    compositor_create_window(&g_compositor, 320, 200, 240, 160, "JagBase");
-    compositor_create_window(&g_compositor, 580, 200, 200, 160, "Forms");
+    compositor_create_window(&g_compositor, 40, 40, 500, 320, "Noder");
+    compositor_create_window(&g_compositor, 560, 40, 220, 160, "Terminal");
     compositor_render(&g_compositor);
+    if (fb_is_ready()) noder_draw(48, 72, 480, 280);
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("v0.0.21: i18n + drivers + full app set\n");
+    console_write("Package format: .jagx (not APK/IPA)\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }

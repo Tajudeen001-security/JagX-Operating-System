@@ -1,7 +1,6 @@
-# JagX v0.0.21
+# JagX v0.0.22
 
-- i18n EN/HA/YO/IG/FR
-- Driver framework + QEMU builtin stubs
-- Apps: Terminal, Calc, Calendar, Contacts, IDE, Forms
-- TRAINING.md + CERTIFICATION.md
-- Honest L0 lab demo target for 2-day windows
+- Real `.jagx` package format (magic, manifest, payload, checksum)
+- Package install to RamFS `/apps/`
+- **Noder** native IDE + packaged as `com.jagx.noder`
+- Documented: APK cannot be renamed to run on JagX
