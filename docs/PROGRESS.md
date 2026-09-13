@@ -1,19 +1,15 @@
-# JagX v0.0.11
+# JagX v0.0.12
 
-## Networking
-- Virtio **RX** path (`virtio_net_receive`)
-- DNS response parser for A records
-- `dns_resolve_a` polls RX after query
-- Minimal **HTTP GET** builder + DNS dependency (TCP ESTABLISHED still required for full fetch)
+## TCP
+- SYN emit with checksum
+- SYN-ACK handling → ESTABLISHED + ACK
+- Data send (PSH+ACK)
+- Data recv path via virtio RX + tcp_input
+- FIN/ACK close path
 
-## Userspace
-- Mapped `user_stack[8192]`
-- **`enter_user_mode()` is actually called** with entry + stack
+## HTTP
+- `http_get`: DNS → TCP connect → wait ESTABLISHED → GET → read response bytes
 
-## Crypto
-- **Full Poly1305** limb implementation + ChaCha20 AEAD
-
-## Remaining for live web pages
-- Complete TCP handshake + payload
-- TLS for HTTPS sites
-- HTML renderer in compositor
+## Docs
+- Full README: install, ISO, QEMU, networking, secure boot, mobile, company guide
+- SETUP_PC.md / SETUP_MOBILE.md
