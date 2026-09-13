@@ -1,7 +1,10 @@
-# JagX v0.0.19
+# JagX v0.0.20
 
-- TLS `tls_master_secret()` from PMS via PRF; key_block after ServerHello
-- Settings richer UI (sidebar + rows)
-- Screenshots as **BMP** into RamFS (scaled to fit 4K file limit)
-- Status bar: clock tick + battery icon
-- Lock screen with swipe-up unlock
+## Office suite
+- Notepad (buffer, save/load RamFS)
+- Paint (canvas, palette, draw)
+- JagSheet (Excel-like grid + column sum, budget sample)
+- JagBase (Access-like table, sample NG/Africa rows)
+
+## Docs
+- GOVERNMENT.md for Nigeria / African government evaluation path

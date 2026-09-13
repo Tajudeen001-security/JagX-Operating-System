@@ -1,20 +1,30 @@
-# JagX OS v0.0.19
+# JagX Operating System
 
 **Founder:** Gbadamosi Tajudeen Olajide  
 https://github.com/Tajudeen001-security/JagX-Operating-System
 
-## New
-- TLS master secret derivation (PRF from pre-master)
-- Richer Settings UI
-- BMP screenshots to RamFS + Gallery
-- Status bar (clock / battery)
-- Lock screen (swipe up to unlock)
-- Notification shade · Control Center · Gallery · Files
+Original OS for PC + Mobile (not Linux/Android/iOS).
 
-## Run
+## Productivity suite (v0.0.20)
+
+| App | Like |
+|-----|------|
+| **Notepad** | Windows Notepad |
+| **Paint** | MS Paint |
+| **JagSheet** | Excel (grids, sums, budget sample) |
+| **JagBase** | Access (tables / records) |
+
+Built for **office and government pilot demos** (Nigeria & Africa).  
+See **[docs/GOVERNMENT.md](docs/GOVERNMENT.md)** — honest readiness + pilot steps.
+
+## Quick start
+
 ```bash
-cd kernel && make && make iso
+git clone https://github.com/Tajudeen001-security/JagX-Operating-System.git
+cd JagX-Operating-System/kernel && make && make iso
 qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
 ```
 
-Phone ports: docs/REPLACE_ANDROID.md
+## Also included
+
+Lock screen · Status bar · Gallery · Screenshots · Control Center · Networking path · Security docs

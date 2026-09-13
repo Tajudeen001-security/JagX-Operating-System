@@ -1,4 +1,4 @@
-/* JagX v0.0.19 */
+/* JagX v0.0.20 — Office suite for gov demos */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -25,6 +25,9 @@
 #include "../../../mobile/features.h"
 #include "../../../mobile/statusbar.h"
 #include "../../../mobile/lockscreen.h"
+#include "../../../apps/office.h"
+#include "../../../apps/sheet.h"
+#include "../../../apps/database.h"
 
 extern int boot_verify_marker(void);
 struct compositor g_compositor;
@@ -38,7 +41,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.19\n===============\n\n");
+    console_write("JagX OS v0.0.20\n===============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -57,12 +60,15 @@ void kernel_main(uint32_t magic, void* mb_info) {
     settings_init();
     statusbar_init();
     lockscreen_init();
+    office_init();
 
-    notifications_push("Welcome", "Swipe up to unlock");
-    notifications_push("Gallery", "BMP screenshots enabled");
+    notifications_push("Office", "Notepad Paint Sheet Base ready");
+    notifications_push("Gov pilot", "See docs/GOVERNMENT.md");
 
-    screenshot_set_triple_tap_enabled(1);
-    gallery_add(JAGX_MEDIA_PHOTO, "camera-demo.jpg", 1280, 720, 200000);
+    console_write("[SHEET] Budget col sum=");
+    console_write_dec((uint32_t)sheet_sum_column(1));
+    console_write("\n");
+    db_list_console();
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -70,15 +76,18 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 40, 40, 300, 200, "Gallery");
-    compositor_create_window(&g_compositor, 280, 80, 300, 200, "Files");
-    compositor_create_window(&g_compositor, 140, 180, 360, 240, "Settings");
+    compositor_create_window(&g_compositor, 30, 36, 300, 180, "Notepad");
+    compositor_create_window(&g_compositor, 350, 36, 280, 180, "Paint");
+    compositor_create_window(&g_compositor, 30, 230, 320, 200, "JagSheet");
+    compositor_create_window(&g_compositor, 370, 230, 320, 200, "JagBase");
     compositor_render(&g_compositor);
+
+    if (fb_is_ready() && !lockscreen_is_locked())
+        office_draw_all();
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("Lock screen + status bar + BMP shots + TLS master PRF\n");
-    console_write("Swipe up on lock screen to unlock\n");
+    console_write("Productivity suite live — gov demo path open\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }
