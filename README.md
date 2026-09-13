@@ -1,38 +1,25 @@
-# JagX OS v0.0.23
+# JagX OS v0.0.24
 
 **Founder:** Gbadamosi Tajudeen Olajide · JagX & JRILICENSE  
 https://github.com/Tajudeen001-security/JagX-Operating-System
 
-## Noder (full desktop IDE)
+## Code on JagX (no Windows required)
 
-Upstream: **https://github.com/JagX-JRILICENSE/Noder**  
-Actions: **https://github.com/JagX-JRILICENSE/Noder/actions** (Build All Platforms / Build Windows App, v0.8.0+)
+**Native Noder IDE** runs **on JagX OS**:
 
-- **Windows/laptop:** use that Electron Noder now (`npm run electron:dev` / `npm run build:win`)
-- **JagX OS:** `noder.jagx` + other apps as **`.jagx`** packages
+- Multi-tab editor, keyboard input, Ctrl+S save, explorer UI
+- Workspace files under `/workspace/`
+- Package: `noder.jagx`
 
-## Package more apps
+Guide: [docs/NODER_JAGX.md](docs/NODER_JAGX.md)
 
-Installed as `.jagx`: Noder, Notepad, Paint, JagSheet, JagBase, Terminal, Calculator, Forms, Contacts, Gallery, Settings
+Full desktop Noder (Windows): https://github.com/JagX-JRILICENSE/Noder
 
-## Wi‑Fi / phone hotspot
-
-See **[docs/HOTSPOT.md](docs/HOTSPOT.md)**
-
-```c
-wifi_join("PhoneSSID", "password");   /* join another phone hotspot */
-wifi_start_hotspot("JagX-Share", "secret"); /* share from this device */
-```
-
-## Can you use it now?
-
-| Target | Now |
-|--------|-----|
-| Noder on Windows | **Yes** — JagX-JRILICENSE/Noder |
-| JagX OS in QEMU | **Yes** — lab boot + packages + APIs |
-| JagX on phone joining real hotspot RF | Needs Wi‑Fi driver on hardware |
+## Run
 
 ```bash
 cd kernel && make && make iso
 qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
 ```
+
+Type in the Noder window. **Ctrl+S** saves. **Ctrl+1–4** switches tabs.

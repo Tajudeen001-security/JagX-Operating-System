@@ -1,4 +1,4 @@
-/* JagX v0.0.23 */
+/* JagX v0.0.24 — native Noder IDE for coding on JagX */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -18,14 +18,10 @@
 #include "../../../net/wifi_hotspot.h"
 #include "../../../userland/process.h"
 #include "../../../mobile/control_center.h"
-#include "../../../mobile/settings.h"
-#include "../../../mobile/gallery.h"
 #include "../../../mobile/notifications.h"
 #include "../../../mobile/statusbar.h"
 #include "../../../mobile/lockscreen.h"
-#include "../../../apps/office.h"
 #include "../../../apps/noder.h"
-#include "../../../apps/terminal.h"
 #include "../../../pkg/jagxpkg.h"
 #include "../../../i18n/lang.h"
 #include "../../../drivers/driver.h"
@@ -44,7 +40,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.0.23\n===============\n\n");
+    console_write("JagX OS v0.0.24\n===============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -57,38 +53,27 @@ void kernel_main(uint32_t magic, void* mb_info) {
     drivers_init();
     drivers_register_builtins();
     drivers_probe_all();
-
     net_init();
     wifi_stack_init();
     ramfs_init();
     pkg_init();
-    gallery_init();
     notifications_init();
     control_center_init();
-    settings_init();
     statusbar_init();
     lockscreen_init();
-    office_init();
-    terminal_init();
-    noder_init();
 
+    /* Unlock so user can type into Noder immediately in lab */
+    lockscreen_hide();
+
+    noder_init();
+    noder_focus(1);
     noder_package_install();
     pkg_bundle_core_apps();
 
-    /* Example: join a phone hotspot SSID (user replaces with real name/pass) */
-    struct wifi_network nets[8];
-    int n = wifi_scan(nets, 8);
-    console_write("[WIFI] Networks found: ");
-    console_write_dec((uint32_t)n);
-    console_write("\n");
-    wifi_join("AndroidAP_1234", "password");
+    noder_save_current();
+    console_write("[NODER] Type to edit. Ctrl+S save. Ctrl+1-4 tabs.\n");
 
-    console_write("[PKG] Total installed: ");
-    console_write_dec((uint32_t)pkg_list_count());
-    console_write("\n");
-
-    notifications_push("Noder", "Upstream: github.com/JagX-JRILICENSE/Noder");
-    notifications_push("Wi-Fi", "Hotspot join API active");
+    notifications_push("Noder", "Code on JagX — keyboard ready");
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -96,15 +81,13 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 30, 36, 480, 300, "Noder");
-    compositor_create_window(&g_compositor, 530, 36, 240, 140, "Wi-Fi");
-    compositor_create_window(&g_compositor, 530, 190, 240, 140, "Packages");
+    compositor_create_window(&g_compositor, 20, 30, 700, 400, "Noder — JagX IDE");
     compositor_render(&g_compositor);
-    if (fb_is_ready()) noder_draw(38, 68, 460, 260);
+    noder_draw(28, 62, 680, 360);
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("Use desktop Noder on Windows; .jagx apps on JagX\n");
+    console_write("Native Noder IDE focused — start coding on JagX\n");
     enter_user_mode((uint32_t)user_program, ustack);
     for (;;) __asm__ volatile ("hlt");
 }

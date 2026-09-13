@@ -1,5 +1,6 @@
-# JagX v0.0.23
+# JagX v0.0.24
 
-- Linked upstream Noder Actions (v0.8.0 builds)
-- Packaged core apps as `.jagx`
-- Wi‑Fi join phone hotspot + soft-AP APIs + HOTSPOT.md
+- Native Noder IDE on JagX (not Windows-only)
+- Multi-tab buffers, keyboard → editor, Ctrl+S, Ctrl+1-4
+- Explorer + tab bar + language hints
+- Default workspace main.c + readme.md
