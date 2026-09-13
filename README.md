@@ -1,21 +1,28 @@
-# JagX Operating System
+# JagX OS v0.0.21
 
 **Founder:** Gbadamosi Tajudeen Olajide  
 https://github.com/Tajudeen001-security/JagX-Operating-System
 
-Original OS for PC + Mobile (not Linux/Android/iOS).
+From-scratch OS for PC + Mobile. **Not** production-ready for national systems in 2 days — use for **lab pilots & demos**.
 
-## Productivity suite (v0.0.20)
+## Apps
 
-| App | Like |
-|-----|------|
-| **Notepad** | Windows Notepad |
-| **Paint** | MS Paint |
-| **JagSheet** | Excel (grids, sums, budget sample) |
-| **JagBase** | Access (tables / records) |
+| Users | Apps |
+|-------|------|
+| **Everyone** | Notepad, Paint, Calculator, Calendar, Gallery, Files, Browser path |
+| **Government** | JagSheet, JagBase, Forms, Contacts |
+| **Developers** | Terminal, IDE surface, driver framework |
 
-Built for **office and government pilot demos** (Nigeria & Africa).  
-See **[docs/GOVERNMENT.md](docs/GOVERNMENT.md)** — honest readiness + pilot steps.
+## Bilingual UI
+
+English · Hausa · Yoruba · Igbo · Français — `i18n/lang.c`
+
+## Docs for your 2-day push
+
+- [TRAINING.md](docs/TRAINING.md) — Day 1 & 2 curriculum
+- [CERTIFICATION.md](docs/CERTIFICATION.md) — L0→L3 readiness
+- [GOVERNMENT.md](docs/GOVERNMENT.md) — pilot policy
+- [DRIVERS.md](docs/DRIVERS.md) — driver registration
 
 ## Quick start
 
@@ -24,7 +31,3 @@ git clone https://github.com/Tajudeen001-security/JagX-Operating-System.git
 cd JagX-Operating-System/kernel && make && make iso
 qemu-system-i386 -cdrom ../boot/jagx.iso -m 128M -serial stdio
 ```
-
-## Also included
-
-Lock screen · Status bar · Gallery · Screenshots · Control Center · Networking path · Security docs

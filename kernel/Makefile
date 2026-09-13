@@ -8,7 +8,7 @@ ifeq (,$(shell which i686-elf-gcc 2>/dev/null))
 endif
 CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-pic -mno-red-zone \
   -I arch/x86_64 -I mm -I fs -I syscall -I ../compositor -I ../net -I ../userland -I ../crypto \
-  -I ../mobile -I ../mobile/hal -I ../apps
+  -I ../mobile -I ../mobile/hal -I ../apps -I ../i18n -I ../drivers
 LDFLAGS = -T linker.ld -nostdlib
 OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o \
   arch/x86_64/timer.o arch/x86_64/keyboard.o arch/x86_64/mouse.o arch/x86_64/irq.o \
@@ -22,7 +22,9 @@ OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o 
   ../mobile/screenshot.o ../mobile/screencast.o ../mobile/features.o \
   ../mobile/notifications.o ../mobile/filemanager.o ../mobile/statusbar.o ../mobile/lockscreen.o \
   ../mobile/hal/camera.o ../mobile/hal/lights.o ../mobile/hal/radio.o ../mobile/hal/wifi.o \
-  ../apps/notepad.o ../apps/paint.o ../apps/sheet.o ../apps/database.o ../apps/office.o
+  ../apps/notepad.o ../apps/paint.o ../apps/sheet.o ../apps/database.o ../apps/office.o \
+  ../apps/terminal.o ../apps/calc.o ../apps/calendar.o ../apps/contacts.o ../apps/ide.o ../apps/forms.o \
+  ../i18n/lang.o ../drivers/driver.o ../drivers/stubs.o
 .PHONY: all clean run iso
 all: jagx.kernel
 jagx.kernel: $(OBJS) linker.ld

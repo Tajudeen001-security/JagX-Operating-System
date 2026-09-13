@@ -1,10 +1,7 @@
-# JagX v0.0.20
+# JagX v0.0.21
 
-## Office suite
-- Notepad (buffer, save/load RamFS)
-- Paint (canvas, palette, draw)
-- JagSheet (Excel-like grid + column sum, budget sample)
-- JagBase (Access-like table, sample NG/Africa rows)
-
-## Docs
-- GOVERNMENT.md for Nigeria / African government evaluation path
+- i18n EN/HA/YO/IG/FR
+- Driver framework + QEMU builtin stubs
+- Apps: Terminal, Calc, Calendar, Contacts, IDE, Forms
+- TRAINING.md + CERTIFICATION.md
+- Honest L0 lab demo target for 2-day windows
