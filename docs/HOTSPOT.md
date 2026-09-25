@@ -1,30 +1,22 @@
 # Connect JagX to a phone hotspot (or share one)
 
-## A) Join another phone’s hotspot (most common)
+## A) Join another phone’s hotspot
 
-1. On the **phone**: Settings → Mobile hotspot / Personal hotspot → turn **ON**. Note **SSID** and **password**.
-2. On **JagX**:
-   - Control Center → Wi‑Fi ON, or
-   - API: `wifi_join("YourPhoneSSID", "password")`
-3. Scan: `wifi_scan(...)` lists nearby SSIDs (phone hotspots appear as normal Wi‑Fi names).
+1. Phone: Settings → Mobile hotspot → ON (note SSID + password)
+2. JagX Control Center → **Wi‑Fi** tile  
+   - Calls `wifi_join(ssid, psk)` (default SSID configurable via `control_center_join_hotspot`)
+3. Or API: `control_center_join_hotspot("YourSSID", "password")`
 
-Under **QEMU** there is no real radio — the stack runs and logs joins. On **real hardware**, a Wi‑Fi driver must implement scan/associate.
+## B) JagX as the hotspot
 
-## B) JagX as the hotspot (other phones join you)
+Control Center → **Hotspot** tile → `wifi_start_hotspot("JagX-Share", ...)`
 
-```c
-wifi_start_hotspot("JagX-Share", "secret123");
-```
+Other phones join that SSID when the Wi‑Fi driver supports AP mode.
 
-Stop with `wifi_stop_hotspot()`.
+## C) QEMU
 
-Needs **AP/soft-AP** support in the Wi‑Fi firmware/driver (common on phones; less common on random PC USB dongles).
+No real RF — APIs log and update state. Internet in QEMU uses virtio-net user networking.
 
-## C) QEMU networking today
+## D) Itel / Tecno / Infinix
 
-PC builds use **virtio-net user networking**, not Wi‑Fi RF. Hotspot APIs are ready for device ports; internet in QEMU already works via user-net.
-
-## Security
-
-- Prefer WPA2 passwords on phone hotspots
-- Do not hard-code passwords in shared images
+Real hotspot join needs the **Wi‑Fi driver** on that phone port (see PORT_ITEL.md).

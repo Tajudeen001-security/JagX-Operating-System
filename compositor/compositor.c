@@ -67,20 +67,26 @@ void compositor_draw_notification_shade(struct compositor* c) {
 
 void compositor_draw_control_center(struct compositor* c) {
     if (!fb_is_ready() || !c->show_control_center) return;
-    int panel_x = 40, panel_y = 40, panel_w = 300, panel_h = 380;
+    int panel_x = 40, panel_y = 40, panel_w = 300, panel_h = 440;
     fb_fill_rect((uint32_t)(panel_x + 4), (uint32_t)(panel_y + 4), (uint32_t)panel_w, (uint32_t)panel_h, 0xFF000000);
     fb_fill_rect((uint32_t)panel_x, (uint32_t)panel_y, (uint32_t)panel_w, (uint32_t)panel_h, 0xEE12121A);
     fb_fill_rect((uint32_t)panel_x, (uint32_t)panel_y, (uint32_t)panel_w, 36, 0xFF00D4C8);
     struct jagx_cc_state st = control_center_get();
-    int tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 56;
+    int tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 52;
     uint32_t on = 0xFF00D4C8, off = 0xFF2A2A35;
+    /* Row0: Wi-Fi | Data */
     fb_fill_rect((uint32_t)tx, (uint32_t)ty, (uint32_t)tw, (uint32_t)th, st.wifi ? on : off);
     fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)ty, (uint32_t)tw, (uint32_t)th, st.mobile_data ? on : off);
-    fb_fill_rect((uint32_t)tx, (uint32_t)(ty + th + 12), (uint32_t)tw, (uint32_t)th, st.airplane ? on : off);
-    fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)(ty + th + 12), (uint32_t)tw, (uint32_t)th, st.torch ? on : off);
-    fb_fill_rect((uint32_t)tx, (uint32_t)(ty + 2 * (th + 12)), (uint32_t)tw, (uint32_t)th, 0xFF7B5EA7);
-    fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)(ty + 2 * (th + 12)), (uint32_t)tw, (uint32_t)th,
-                 screencast_is_recording() ? 0xFFE74C3C : 0xFF2A2A35);
+    /* Row1: Airplane | Torch */
+    fb_fill_rect((uint32_t)tx, (uint32_t)(ty + th + 10), (uint32_t)tw, (uint32_t)th, st.airplane ? on : off);
+    fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)(ty + th + 10), (uint32_t)tw, (uint32_t)th, st.torch ? on : off);
+    /* Row2: Hotspot | Screenshot */
+    fb_fill_rect((uint32_t)tx, (uint32_t)(ty + 2 * (th + 10)), (uint32_t)tw, (uint32_t)th,
+                 st.hotspot ? 0xFFE67E22 : off);
+    fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)(ty + 2 * (th + 10)), (uint32_t)tw, (uint32_t)th, 0xFF7B5EA7);
+    /* Row3: Record */
+    fb_fill_rect((uint32_t)tx, (uint32_t)(ty + 3 * (th + 10)), (uint32_t)tw, (uint32_t)th,
+                 screencast_is_recording() ? 0xFFE74C3C : off);
 }
 
 void compositor_toggle_control_center(struct compositor* c) {
@@ -155,13 +161,21 @@ void compositor_handle_mouse(struct compositor* c, int x, int y, uint8_t buttons
             }
         }
         if (c->show_control_center) {
-            int panel_x = 40, panel_y = 40, tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 56;
-            if (x >= tx && x < tx + tw && y >= ty && y < ty + th) control_center_toggle_wifi();
-            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty && y < ty + th) control_center_toggle_data();
-            else if (x >= tx && x < tx + tw && y >= ty + th + 12 && y < ty + 2 * th + 12) control_center_toggle_airplane();
-            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + th + 12 && y < ty + 2 * th + 12) control_center_toggle_torch();
-            else if (x >= tx && x < tx + tw && y >= ty + 2 * (th + 12) && y < ty + 3 * th + 24) control_center_screenshot();
-            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + 2 * (th + 12) && y < ty + 3 * th + 24)
+            int panel_x = 40, panel_y = 40, tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 52;
+            int gap = th + 10;
+            if (x >= tx && x < tx + tw && y >= ty && y < ty + th)
+                control_center_toggle_wifi();
+            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty && y < ty + th)
+                control_center_toggle_data();
+            else if (x >= tx && x < tx + tw && y >= ty + gap && y < ty + gap + th)
+                control_center_toggle_airplane();
+            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + gap && y < ty + gap + th)
+                control_center_toggle_torch();
+            else if (x >= tx && x < tx + tw && y >= ty + 2 * gap && y < ty + 2 * gap + th)
+                control_center_toggle_hotspot();
+            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + 2 * gap && y < ty + 2 * gap + th)
+                control_center_screenshot();
+            else if (x >= tx && x < tx + tw && y >= ty + 3 * gap && y < ty + 3 * gap + th)
                 control_center_toggle_record();
         }
     }
