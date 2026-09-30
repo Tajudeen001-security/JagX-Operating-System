@@ -8,7 +8,8 @@ ifeq (,$(shell which i686-elf-gcc 2>/dev/null))
 endif
 CFLAGS = -std=gnu99 -ffreestanding -O2 -Wall -Wextra -fno-stack-protector -fno-pic -mno-red-zone \
   -I arch/x86_64 -I mm -I fs -I syscall -I ../compositor -I ../net -I ../userland -I ../crypto \
-  -I ../mobile -I ../mobile/hal -I ../apps -I ../i18n -I ../drivers -I ../pkg -I ../browser -I ../sdk
+  -I ../mobile -I ../mobile/hal -I ../apps -I ../i18n -I ../drivers -I ../pkg -I ../browser -I ../sdk \
+  -I ../auth -I ../system
 LDFLAGS = -T linker.ld -nostdlib
 OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o \
   arch/x86_64/timer.o arch/x86_64/keyboard.o arch/x86_64/mouse.o arch/x86_64/irq.o \
@@ -29,7 +30,8 @@ OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o 
   ../apps/noder.o ../apps/phone.o ../apps/messages.o ../apps/social.o ../apps/browser_app.o ../apps/store.o \
   ../browser/search.o \
   ../i18n/lang.o ../drivers/driver.o ../drivers/stubs.o \
-  ../pkg/jagxpkg.o ../pkg/bundle_apps.o
+  ../pkg/jagxpkg.o ../pkg/bundle_apps.o \
+  ../auth/auth.o ../system/power.o
 .PHONY: all clean run iso
 all: jagx.kernel
 jagx.kernel: $(OBJS) linker.ld

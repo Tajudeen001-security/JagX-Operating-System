@@ -22,6 +22,7 @@ void phone_init(void) {
     phone_contact_add("Emergency", "112");
     phone_contact_add("Ministry IT", "+2348000000001");
     phone_contact_add("Support", "+2348000000002");
+    phone_contact_add("Lagos Office", "+2348012345678");
     console_write("[PHONE] Contacts + dialer ready\n");
 }
 
@@ -56,7 +57,7 @@ void phone_dial_digit(char d) {
 }
 
 void phone_dial_clear(void) {
-    if (dial_len > 0) { dial[--dial_len] = 0; }
+    if (dial_len > 0) dial[--dial_len] = 0;
 }
 
 const char* phone_dial_buffer(void) { return dial; }
@@ -66,9 +67,8 @@ int phone_call(const char* number) {
     in_call = 1;
     console_write("[PHONE] Calling ");
     console_write(number);
-    console_write(" (modem HAL on device)\n");
-    /* Real call: radio HAL / modem driver */
-    return 0;
+    console_write("\n");
+    return jagx_call_dial(number);
 }
 
 int phone_call_contact(int index) {
@@ -78,6 +78,7 @@ int phone_call_contact(int index) {
 
 void phone_hangup(void) {
     in_call = 0;
+    jagx_call_hangup();
     console_write("[PHONE] Call ended\n");
 }
 
@@ -111,4 +112,10 @@ void phone_draw_dialer(int x, int y, int w, int h) {
                          (uint32_t)((w-60)/3), 40, 0xFF2A2A35);
     fb_fill_rect((uint32_t)(x+w/2-40), (uint32_t)(y+h-50), 80, 36,
                  in_call ? 0xFFE74C3C : 0xFF2ECC71);
+}
+
+void phone_draw(int x, int y, int w, int h) {
+    int mid = h / 2;
+    phone_draw_contacts(x, y, w, mid - 4);
+    phone_draw_dialer(x, y + mid, w, h - mid);
 }

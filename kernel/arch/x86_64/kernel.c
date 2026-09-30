@@ -1,4 +1,4 @@
-/* JagX v0.1.0 — Independence: native phone, SMS, social, store, launcher */
+/* JagX v0.1.1 — auth + power wired into boot */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -22,6 +22,7 @@
 #include "../../../mobile/statusbar.h"
 #include "../../../mobile/lockscreen.h"
 #include "../../../mobile/launcher.h"
+#include "../../../mobile/settings.h"
 #include "../../../apps/noder.h"
 #include "../../../apps/phone.h"
 #include "../../../apps/messages.h"
@@ -32,6 +33,8 @@
 #include "../../../pkg/jagxpkg.h"
 #include "../../../i18n/lang.h"
 #include "../../../drivers/driver.h"
+#include "../../../auth/auth.h"
+#include "../../../system/power.h"
 
 extern void drivers_register_builtins(void);
 extern void pkg_bundle_core_apps(void);
@@ -47,13 +50,20 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.1.0 Independence\n===========================\n\n");
+    console_write("JagX OS v0.1.1\n==============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
     gdt_init(); idt_init(); pic_remap();
     if (pmm_get_total_pages() == 0) pmm_init(256 * 1024);
     heap_init(); paging_init(); fb_init();
+
+    power_init();
+    auth_init();
+    /* Enable biometrics framework for Settings / lock (HAL on real device) */
+    auth_enable_fingerprint(1);
+    auth_enable_face(1);
+
     timer_init(100); keyboard_init(); mouse_init();
 
     lang_init();
@@ -67,6 +77,7 @@ void kernel_main(uint32_t magic, void* mb_info) {
     notifications_init();
     control_center_init();
     statusbar_init();
+    settings_init();
     lockscreen_init();
     launcher_init();
     contacts_init();
@@ -76,19 +87,27 @@ void kernel_main(uint32_t magic, void* mb_info) {
     browser_app_init();
     store_init();
 
-    /* Unlock so user can type into Noder immediately in lab */
-    lockscreen_hide();
+    /* Boot animation ticks then lock screen (PIN 1234) */
+    if (fb_is_ready()) {
+        for (int i = 0; i < 45; i++) {
+            power_tick();
+            power_draw_screen();
+        }
+        power_boot_complete();
+    } else {
+        power_boot_complete();
+    }
+
+    lockscreen_show(); /* require auth */
+    console_write("[AUTH] Lock screen — PIN 1234 | F1 fingerprint | F2 face\n");
+    console_write("[POWER] Ctrl+Shift+Q shutdown | Ctrl+Shift+R restart\n");
 
     noder_init();
-    noder_focus(1);
     noder_package_install();
     pkg_bundle_core_apps();
 
-    noder_save_current();
-    console_write("[NODER] Type to edit. Ctrl+S save. Ctrl+1-4 tabs.\n");
-    console_write("[APPS] Phone, Messages, JagCircle, JagBrowser, JagStore (.jagx)\n");
-
-    notifications_push("JagX", "Independence — native apps, no APK");
+    notifications_push("JagX", "Unlock with PIN 1234");
+    phone_list_console();
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -96,15 +115,33 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 20, 30, 700, 400, "Noder — JagX IDE");
-    compositor_create_window(&g_compositor, 40, 80, 280, 360, "Phone");
-    compositor_render(&g_compositor);
-    noder_draw(28, 62, 680, 360);
-    phone_draw(48, 112, 260, 320);
+    compositor_create_window(&g_compositor, 20, 30, 520, 360, "Noder");
+    compositor_create_window(&g_compositor, 560, 30, 220, 360, "Phone");
+    compositor_create_window(&g_compositor, 20, 410, 300, 160, "Settings");
+    compositor_create_window(&g_compositor, 340, 410, 280, 160, "Messages");
+
+    if (fb_is_ready()) {
+        if (lockscreen_is_locked()) {
+            lockscreen_draw();
+        } else {
+            compositor_render(&g_compositor);
+            noder_draw(28, 62, 500, 320);
+            phone_draw(568, 62, 200, 320);
+            settings_draw_at(28, 442, 280, 120);
+            messages_draw(348, 442, 260, 120);
+        }
+    }
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("JagX v0.1.0 ready — .jagx only, never APK\n");
-    enter_user_mode((uint32_t)user_program, ustack);
-    for (;;) __asm__ volatile ("hlt");
+    console_write("v0.1.1: auth+power+phone integrated\n");
+
+    /* Main loop: power transitions + idle */
+    for (;;) {
+        if (power_blocks_ui()) {
+            power_tick();
+            power_draw_screen();
+        }
+        __asm__ volatile ("hlt");
+    }
 }
