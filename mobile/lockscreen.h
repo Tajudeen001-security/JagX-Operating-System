@@ -10,5 +10,7 @@ void lockscreen_on_drag(int y);
 void lockscreen_on_key(char c);
 void lockscreen_try_fingerprint(void);
 void lockscreen_try_face(void);
+/* Mouse/touch hit-test on PIN keypad, biometrics, OK/backspace */
+void lockscreen_on_click(int x, int y);
 
 #endif

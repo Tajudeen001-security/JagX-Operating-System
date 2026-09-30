@@ -1,7 +1,6 @@
-# JagX v0.1.1
+# JagX v0.1.2
 
-- auth + power linked into kernel_main boot path
-- Lock screen receives keyboard (PIN)
-- F1/F2 biometric tries
-- Ctrl+Shift+Q/R power menu
-- phone_draw() for Contacts+Dialer window
+- lockscreen_on_click: full PIN keypad + bio buttons
+- power_menu: on-screen Power off / Restart / Sleep / Cancel
+- Messages: threads, unread, select, compose send
+- Gallery: grid thumbs, selection, type accents

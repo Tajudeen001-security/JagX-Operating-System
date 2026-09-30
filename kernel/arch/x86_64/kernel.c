@@ -1,4 +1,4 @@
-/* JagX v0.1.1 — auth + power wired into boot */
+/* JagX v0.1.2 — PIN keypad clicks, power menu, Messages+Gallery polish */
 #include "gdt.h"
 #include "idt.h"
 #include "pic.h"
@@ -23,6 +23,7 @@
 #include "../../../mobile/lockscreen.h"
 #include "../../../mobile/launcher.h"
 #include "../../../mobile/settings.h"
+#include "../../../mobile/gallery.h"
 #include "../../../apps/noder.h"
 #include "../../../apps/phone.h"
 #include "../../../apps/messages.h"
@@ -35,6 +36,7 @@
 #include "../../../drivers/driver.h"
 #include "../../../auth/auth.h"
 #include "../../../system/power.h"
+#include "../../../system/power_menu.h"
 
 extern void drivers_register_builtins(void);
 extern void pkg_bundle_core_apps(void);
@@ -50,7 +52,7 @@ static void user_program(void) {
 
 void kernel_main(uint32_t magic, void* mb_info) {
     console_init();
-    console_write("JagX OS v0.1.1\n==============\n\n");
+    console_write("JagX OS v0.1.2\n==============\n\n");
     if (boot_verify_marker() != 0) for (;;) __asm__ volatile ("hlt");
 
     multiboot2_parse(magic, mb_info);
@@ -59,8 +61,8 @@ void kernel_main(uint32_t magic, void* mb_info) {
     heap_init(); paging_init(); fb_init();
 
     power_init();
+    power_menu_init();
     auth_init();
-    /* Enable biometrics framework for Settings / lock (HAL on real device) */
     auth_enable_fingerprint(1);
     auth_enable_face(1);
 
@@ -78,6 +80,7 @@ void kernel_main(uint32_t magic, void* mb_info) {
     control_center_init();
     statusbar_init();
     settings_init();
+    gallery_init();
     lockscreen_init();
     launcher_init();
     contacts_init();
@@ -87,27 +90,20 @@ void kernel_main(uint32_t magic, void* mb_info) {
     browser_app_init();
     store_init();
 
-    /* Boot animation ticks then lock screen (PIN 1234) */
     if (fb_is_ready()) {
-        for (int i = 0; i < 45; i++) {
-            power_tick();
-            power_draw_screen();
-        }
+        for (int i = 0; i < 45; i++) { power_tick(); power_draw_screen(); }
         power_boot_complete();
-    } else {
-        power_boot_complete();
-    }
+    } else power_boot_complete();
 
-    lockscreen_show(); /* require auth */
-    console_write("[AUTH] Lock screen — PIN 1234 | F1 fingerprint | F2 face\n");
-    console_write("[POWER] Ctrl+Shift+Q shutdown | Ctrl+Shift+R restart\n");
+    lockscreen_show();
+    console_write("[AUTH] Click PIN keys or type 1234+Enter | F1/F2 bio\n");
+    console_write("[POWER] Ctrl+Shift+Q menu | Control Center power tile\n");
 
     noder_init();
     noder_package_install();
     pkg_bundle_core_apps();
 
-    notifications_push("JagX", "Unlock with PIN 1234");
-    phone_list_console();
+    notifications_push("JagX", "Click PIN keypad to unlock");
 
     process_init();
     uint32_t ustack = (uint32_t)(user_stack + sizeof(user_stack));
@@ -115,28 +111,26 @@ void kernel_main(uint32_t magic, void* mb_info) {
     tss_set_stack((uint32_t)&user_stack[0] + 0x10000);
 
     compositor_init(&g_compositor);
-    compositor_create_window(&g_compositor, 20, 30, 520, 360, "Noder");
-    compositor_create_window(&g_compositor, 560, 30, 220, 360, "Phone");
-    compositor_create_window(&g_compositor, 20, 410, 300, 160, "Settings");
-    compositor_create_window(&g_compositor, 340, 410, 280, 160, "Messages");
+    compositor_create_window(&g_compositor, 16, 28, 400, 300, "Noder");
+    compositor_create_window(&g_compositor, 430, 28, 200, 300, "Phone");
+    compositor_create_window(&g_compositor, 16, 340, 280, 200, "Messages");
+    compositor_create_window(&g_compositor, 310, 340, 320, 200, "Gallery");
 
     if (fb_is_ready()) {
-        if (lockscreen_is_locked()) {
-            lockscreen_draw();
-        } else {
+        if (lockscreen_is_locked()) lockscreen_draw();
+        else {
             compositor_render(&g_compositor);
-            noder_draw(28, 62, 500, 320);
-            phone_draw(568, 62, 200, 320);
-            settings_draw_at(28, 442, 280, 120);
-            messages_draw(348, 442, 260, 120);
+            noder_draw(24, 60, 380, 260);
+            phone_draw(438, 60, 180, 260);
+            messages_draw(24, 372, 260, 160);
+            gallery_draw(318, 372, 300, 160);
         }
     }
 
     syscall_init();
     __asm__ volatile ("sti");
-    console_write("v0.1.1: auth+power+phone integrated\n");
+    console_write("v0.1.2 ready — PIN clicks, power menu, Messages, Gallery\n");
 
-    /* Main loop: power transitions + idle */
     for (;;) {
         if (power_blocks_ui()) {
             power_tick();

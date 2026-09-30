@@ -6,6 +6,10 @@
 #include "../mobile/notifications.h"
 #include "../mobile/statusbar.h"
 #include "../mobile/lockscreen.h"
+#include "../system/power_menu.h"
+#include "../system/power.h"
+#include "../apps/messages.h"
+#include "../mobile/gallery.h"
 
 static void jagx_strncpy(char* dst, const char* src, int n) {
     int i = 0;
@@ -67,26 +71,24 @@ void compositor_draw_notification_shade(struct compositor* c) {
 
 void compositor_draw_control_center(struct compositor* c) {
     if (!fb_is_ready() || !c->show_control_center) return;
-    int panel_x = 40, panel_y = 40, panel_w = 300, panel_h = 440;
+    int panel_x = 40, panel_y = 40, panel_w = 300, panel_h = 480;
     fb_fill_rect((uint32_t)(panel_x + 4), (uint32_t)(panel_y + 4), (uint32_t)panel_w, (uint32_t)panel_h, 0xFF000000);
     fb_fill_rect((uint32_t)panel_x, (uint32_t)panel_y, (uint32_t)panel_w, (uint32_t)panel_h, 0xEE12121A);
     fb_fill_rect((uint32_t)panel_x, (uint32_t)panel_y, (uint32_t)panel_w, 36, 0xFF00D4C8);
     struct jagx_cc_state st = control_center_get();
     int tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 52;
     uint32_t on = 0xFF00D4C8, off = 0xFF2A2A35;
-    /* Row0: Wi-Fi | Data */
     fb_fill_rect((uint32_t)tx, (uint32_t)ty, (uint32_t)tw, (uint32_t)th, st.wifi ? on : off);
     fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)ty, (uint32_t)tw, (uint32_t)th, st.mobile_data ? on : off);
-    /* Row1: Airplane | Torch */
     fb_fill_rect((uint32_t)tx, (uint32_t)(ty + th + 10), (uint32_t)tw, (uint32_t)th, st.airplane ? on : off);
     fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)(ty + th + 10), (uint32_t)tw, (uint32_t)th, st.torch ? on : off);
-    /* Row2: Hotspot | Screenshot */
     fb_fill_rect((uint32_t)tx, (uint32_t)(ty + 2 * (th + 10)), (uint32_t)tw, (uint32_t)th,
                  st.hotspot ? 0xFFE67E22 : off);
     fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)(ty + 2 * (th + 10)), (uint32_t)tw, (uint32_t)th, 0xFF7B5EA7);
-    /* Row3: Record */
     fb_fill_rect((uint32_t)tx, (uint32_t)(ty + 3 * (th + 10)), (uint32_t)tw, (uint32_t)th,
                  screencast_is_recording() ? 0xFFE74C3C : off);
+    /* Power menu tile */
+    fb_fill_rect((uint32_t)(tx + tw + 16), (uint32_t)(ty + 3 * (th + 10)), (uint32_t)tw, (uint32_t)th, 0xFFE74C3C);
 }
 
 void compositor_toggle_control_center(struct compositor* c) {
@@ -98,11 +100,16 @@ void compositor_toggle_notification_shade(struct compositor* c) {
 
 void compositor_render(struct compositor* c) {
     if (!fb_is_ready()) return;
+    if (power_blocks_ui()) {
+        power_draw_screen();
+        return;
+    }
     statusbar_tick();
     if (screencast_is_recording()) screencast_tick();
 
     if (lockscreen_is_locked()) {
         lockscreen_draw();
+        if (power_menu_is_open()) power_menu_draw();
         compositor_draw_cursor(c->last_cursor_x, c->last_cursor_y);
         return;
     }
@@ -121,6 +128,7 @@ void compositor_render(struct compositor* c) {
     compositor_draw_control_center(c);
     compositor_draw_notification_shade(c);
     statusbar_draw();
+    if (power_menu_is_open()) power_menu_draw();
     if (screencast_is_recording()) fb_fill_rect(16, 32, 18, 18, 0xFFE74C3C);
     if (notifications_count() > 0) fb_fill_rect(fb_width() > 20 ? fb_width() - 20 : 780, 8, 10, 10, 0xFFE74C3C);
     compositor_draw_cursor(c->last_cursor_x, c->last_cursor_y);
@@ -135,6 +143,24 @@ void compositor_draw_cursor(int x, int y) {
 void compositor_handle_mouse(struct compositor* c, int x, int y, uint8_t buttons) {
     if (!fb_is_ready()) return;
     int left_down = buttons & 1;
+    static int prev_down = 0;
+    int click = left_down && !prev_down;
+    prev_down = left_down;
+
+    if (power_blocks_ui()) {
+        c->last_cursor_x = x;
+        c->last_cursor_y = y;
+        power_draw_screen();
+        return;
+    }
+
+    if (power_menu_is_open() && click) {
+        power_menu_on_click(x, y);
+        compositor_render(c);
+        c->last_cursor_x = x;
+        c->last_cursor_y = y;
+        return;
+    }
 
     if (lockscreen_is_locked()) {
         static int prev_y = -1;
@@ -142,14 +168,39 @@ void compositor_handle_mouse(struct compositor* c, int x, int y, uint8_t buttons
             if (prev_y >= 0) lockscreen_on_drag(y - prev_y);
             prev_y = y;
         } else prev_y = -1;
+        if (click) {
+            lockscreen_on_click(x, y);
+            lockscreen_draw();
+        }
         c->last_cursor_x = x;
         c->last_cursor_y = y;
-        compositor_render(c);
+        compositor_draw_cursor(x, y);
         return;
     }
 
     if (left_down) screenshot_on_tap(x, y);
     if (left_down && y < 28) c->show_notification_shade = 1;
+
+    if (click && c->show_control_center) {
+        int panel_x = 40, panel_y = 40, tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 52;
+        int gap = th + 10;
+        if (x >= tx && x < tx + tw && y >= ty && y < ty + th)
+            control_center_toggle_wifi();
+        else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty && y < ty + th)
+            control_center_toggle_data();
+        else if (x >= tx && x < tx + tw && y >= ty + gap && y < ty + gap + th)
+            control_center_toggle_airplane();
+        else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + gap && y < ty + gap + th)
+            control_center_toggle_torch();
+        else if (x >= tx && x < tx + tw && y >= ty + 2 * gap && y < ty + 2 * gap + th)
+            control_center_toggle_hotspot();
+        else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + 2 * gap && y < ty + 2 * gap + th)
+            control_center_screenshot();
+        else if (x >= tx && x < tx + tw && y >= ty + 3 * gap && y < ty + 3 * gap + th)
+            control_center_toggle_record();
+        else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + 3 * gap && y < ty + 3 * gap + th)
+            power_menu_show();
+    }
 
     if (left_down && c->focused_id >= 0) {
         struct jagx_window* w = &c->windows[c->focused_id];
@@ -160,23 +211,18 @@ void compositor_handle_mouse(struct compositor* c, int x, int y, uint8_t buttons
                 c->drag_offset_y = y - w->y;
             }
         }
-        if (c->show_control_center) {
-            int panel_x = 40, panel_y = 40, tx = panel_x + 16, ty = panel_y + 52, tw = 120, th = 52;
-            int gap = th + 10;
-            if (x >= tx && x < tx + tw && y >= ty && y < ty + th)
-                control_center_toggle_wifi();
-            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty && y < ty + th)
-                control_center_toggle_data();
-            else if (x >= tx && x < tx + tw && y >= ty + gap && y < ty + gap + th)
-                control_center_toggle_airplane();
-            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + gap && y < ty + gap + th)
-                control_center_toggle_torch();
-            else if (x >= tx && x < tx + tw && y >= ty + 2 * gap && y < ty + 2 * gap + th)
-                control_center_toggle_hotspot();
-            else if (x >= tx + tw + 16 && x < tx + 2 * tw + 16 && y >= ty + 2 * gap && y < ty + 2 * gap + th)
-                control_center_screenshot();
-            else if (x >= tx && x < tx + tw && y >= ty + 3 * gap && y < ty + 3 * gap + th)
-                control_center_toggle_record();
+        if (click) {
+            /* Route clicks into Messages / Gallery windows by title */
+            for (int i = 0; i < MAX_WINDOWS; i++) {
+                if (!c->windows[i].visible || c->windows[i].id == -1) continue;
+                struct jagx_window* ww = &c->windows[i];
+                if (x < ww->x || x >= ww->x + ww->width || y < ww->y + 32 || y >= ww->y + ww->height)
+                    continue;
+                if (ww->title[0]=='M' && ww->title[1]=='e') /* Messages */
+                    messages_on_click(x, y, ww->x, ww->y + 32, ww->width, ww->height - 32);
+                if (ww->title[0]=='G' && ww->title[1]=='a') /* Gallery */
+                    gallery_on_click(x, y, ww->x, ww->y + 32, ww->width, ww->height - 32);
+            }
         }
     }
     if (c->focused_id >= 0 && c->windows[c->focused_id].dragging) {

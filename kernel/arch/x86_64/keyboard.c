@@ -5,6 +5,7 @@
 #include "../../../apps/noder.h"
 #include "../../../mobile/lockscreen.h"
 #include "../../../system/power.h"
+#include "../../../system/power_menu.h"
 
 static const char scancode_ascii[128] = {
     0,  27, '1','2','3','4','5','6','7','8','9','0','-','=', '\b',
@@ -40,12 +41,11 @@ void keyboard_handler(void) {
     if (scancode == 0x1D) { ctrl_pressed = 1; return; }
     if (scancode == 0x3A) { caps_lock = !caps_lock; return; }
 
-    /* Power: Ctrl+Alt not available easily — Ctrl+Shift+Q shutdown, Ctrl+Shift+R restart */
-    if (ctrl_pressed && shift_pressed && scancode == 0x10) { /* Q */
-        power_request_shutdown();
+    if (ctrl_pressed && shift_pressed && scancode == 0x10) {
+        power_menu_show();
         return;
     }
-    if (ctrl_pressed && shift_pressed && scancode == 0x13) { /* R */
+    if (ctrl_pressed && shift_pressed && scancode == 0x13) {
         power_request_restart();
         return;
     }
@@ -59,7 +59,6 @@ void keyboard_handler(void) {
         return;
     }
 
-    /* F1 fingerprint try, F2 face try on lock screen */
     if (scancode == 0x3B) { lockscreen_try_fingerprint(); return; }
     if (scancode == 0x3C) { lockscreen_try_face(); return; }
 
@@ -76,9 +75,8 @@ void keyboard_handler(void) {
             lockscreen_on_key(c);
             return;
         }
-        if (noder_is_focused()) {
-            noder_on_key(c);
-        } else {
+        if (noder_is_focused()) noder_on_key(c);
+        else {
             char buf[2] = {c, 0};
             console_write(buf);
         }

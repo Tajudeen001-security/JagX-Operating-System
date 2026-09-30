@@ -31,7 +31,7 @@ OBJS = arch/x86_64/boot.o arch/x86_64/gdt.o arch/x86_64/idt.o arch/x86_64/pic.o 
   ../browser/search.o \
   ../i18n/lang.o ../drivers/driver.o ../drivers/stubs.o \
   ../pkg/jagxpkg.o ../pkg/bundle_apps.o \
-  ../auth/auth.o ../system/power.o
+  ../auth/auth.o ../system/power.o ../system/power_menu.o
 .PHONY: all clean run iso
 all: jagx.kernel
 jagx.kernel: $(OBJS) linker.ld
