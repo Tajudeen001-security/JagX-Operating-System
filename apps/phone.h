@@ -1,24 +1,22 @@
 #ifndef JAGX_PHONE_H
 #define JAGX_PHONE_H
 
-#include <stdint.h>
-
-enum jagx_call_state {
-    JAGX_CALL_IDLE = 0,
-    JAGX_CALL_DIALING,
-    JAGX_CALL_RINGING,
-    JAGX_CALL_ACTIVE,
-    JAGX_CALL_HELD,
-    JAGX_CALL_ENDED
-};
+/* Contacts + dialer + call log */
 
 void phone_init(void);
-int  phone_dial(const char* number);
-int  phone_answer(void);
-int  phone_hangup(void);
-int  phone_mute(int on);
-enum jagx_call_state phone_state(void);
-const char* phone_peer(void);
-void phone_draw(int x, int y, int w, int h);
+int  phone_contact_add(const char* name, const char* number);
+int  phone_contact_count(void);
+const char* phone_contact_name(int i);
+const char* phone_contact_number(int i);
+void phone_dial_digit(char d);
+void phone_dial_clear(void);
+const char* phone_dial_buffer(void);
+int  phone_call(const char* number); /* needs modem HAL */
+int  phone_call_contact(int index);
+void phone_hangup(void);
+int  phone_is_in_call(void);
+void phone_draw_contacts(int x, int y, int w, int h);
+void phone_draw_dialer(int x, int y, int w, int h);
+void phone_list_console(void);
 
 #endif
